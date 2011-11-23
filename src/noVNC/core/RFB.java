@@ -250,7 +250,7 @@ public class RFB {
 	    ws = new WebSock();
 	    ws.hook(new WebSocket.WebSocketHandler() {
 			@Override
-			public void onOpen() {
+			public void onOpen(NativeEvent e) {
 			    if (rfb_state.equals("connect")) {
 		            updateState("ProtocolVersion", "Starting VNC handshake");
 		        } else {
@@ -268,7 +268,7 @@ public class RFB {
 			}
 			
 			@Override
-			public void onClose() {
+			public void onClose(NativeEvent e) {
 		        if (rfb_state.equals("disconnect")) {
 		            updateState("disconnected", "VNC disconnected");
 		        } else if (rfb_state.equals("ProtocolVersion")) {

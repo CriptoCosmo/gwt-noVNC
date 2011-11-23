@@ -6,8 +6,8 @@ import com.google.gwt.dom.client.NativeEvent;
 public final class WebSocket extends JavaScriptObject {
 	
 	public interface WebSocketHandler {
-		public void onOpen();
-		public void onClose();
+		public void onOpen(NativeEvent e);
+		public void onClose(NativeEvent e);
 		public void onError(NativeEvent e);
 		public void onMessage(MessageEvent e);
 	}
@@ -36,10 +36,10 @@ public final class WebSocket extends JavaScriptObject {
 	
 	public native void hook(WebSocketHandler handler) /*-{
 		this.onopen = $entry(function(e) {
-			handler.@noVNC.core.WebSocket.WebSocketHandler::onOpen();
+			handler.@noVNC.core.WebSocket.WebSocketHandler::onOpen(Lcom/google/gwt/dom/client/NativeEvent;)(e);
 		});
 		this.onclose = $entry(function(e) {
-			handler.@noVNC.core.WebSocket.WebSocketHandler::onClose();
+			handler.@noVNC.core.WebSocket.WebSocketHandler::onClose(Lcom/google/gwt/dom/client/NativeEvent;)(e);
 		});
 		this.onerror = $entry(function(e) {
 			handler.@noVNC.core.WebSocket.WebSocketHandler::onError(Lcom/google/gwt/dom/client/NativeEvent;)(e);

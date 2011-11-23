@@ -1,5 +1,6 @@
 package noVNC.core;
 
+import com.google.gwt.core.client.JavaScriptException;
 import com.google.gwt.dom.client.NativeEvent;
 
 import noVNC.core.WebSocket.MessageEvent;
@@ -316,11 +317,21 @@ public class WebSock {
 
 	    if (test_mode) {
 	        websocket = null;
-	    } else {
-	        websocket = WebSocket.create(uri, "base64");
-	        // TODO: future native binary support
-	        //websocket = new WebSocket(uri, ['binary', 'base64']);
+	        return;
 	    }
+	    
+	    try {
+	    	
+
+	    websocket = WebSocket.create(uri, "base64");
+	    // TODO: future native binary support
+	    //websocket = new WebSocket(uri, ['binary', 'base64']);
+	    } catch (JavaScriptException e) {
+	    	e.printStackTrace();
+	    }
+	    
+	    System.err.println(websocket.getProtocol());
+	    System.err.println(websocket.getReadyState());
 
 	    websocket.hook(new WebSocketHandler() {
 	    	@Override
@@ -328,16 +339,16 @@ public class WebSock {
 	    		recv_message(event);
 	    	}
 			@Override
-			public void onOpen() {
+			public void onOpen(NativeEvent e) {
 		        Util.Debug(">> WebSock.onopen");
 	            Util.Info("Server chose sub-protocol: " + websocket.getProtocol());
-	            eventHandlers.onOpen();
+	            eventHandlers.onOpen(e);
 	            Util.Debug("<< WebSock.onopen");
 			}
 			@Override
-			public void onClose() {
+			public void onClose(NativeEvent e) {
 				Util.Debug(">> WebSock.onclose");
-				eventHandlers.onClose();
+				eventHandlers.onClose(e);
 				Util.Debug("<< WebSock.onclose");
 			}
 			@Override
