@@ -6,7 +6,7 @@ import java.util.Map;
 public class Defaults {
 	
 	public static Map<String, Object> map = new HashMap<String, Object> ();
-	public static int connectTimeout = 2;
+	public static int connectTimeout = 10;
 	public static int disconnectTimeout = 2;
 	public static boolean encrypt = false;
 
