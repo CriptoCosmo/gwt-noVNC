@@ -30,7 +30,7 @@ public final class WebSocket extends JavaScriptObject {
 		return new $wnd.WebSocket(url);
 	}-*/;
 	
-	public static native WebSocket create(String uri, String protocol) /*-{
+	public static native WebSocket create(String url, String protocol) /*-{
 		return new $wnd.WebSocket(url, protocol);
     }-*/;
 	
