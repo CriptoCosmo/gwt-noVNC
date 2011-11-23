@@ -477,7 +477,7 @@ public class RFB {
 	                fail("Connect timeout");
 				}
 			};
-			connTimer.scheduleRepeating(Defaults.connectTimeout * 1000);
+			connTimer.schedule(Defaults.connectTimeout * 1000);
 
 			init_vars();
 	        connect();
@@ -490,7 +490,7 @@ public class RFB {
 						fail("Disconnect timeout");
 					}
 	            };
-	            disconnTimer.scheduleRepeating(Defaults.disconnectTimeout * 1000);
+	            disconnTimer.schedule(Defaults.disconnectTimeout * 1000);
 	        }
 
 	        print_stats();
@@ -529,7 +529,7 @@ public class RFB {
 	
 	// UI will override
 	public void onUpdateState(RFB rfb, String state, String oldState, String status) {
-		
+		Util.Debug(">>> State changed: " + oldState + " --> " + state + " : " + status);
 	}
 
 	private boolean fail(String msg) {
