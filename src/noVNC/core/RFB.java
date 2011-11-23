@@ -693,8 +693,8 @@ public class RFB {
 	        if (ws.rQlen() < 12) {
 	            fail("Incomplete protocol version");
 	        }
-	        String sversion = ws.rQshiftStr(12).substring(4,7);
-	        Util.Info("Serer ProtocolVersion: " + sversion);
+	        String sversion = ws.rQshiftStr(12).substring(4,11);
+	        Util.Info("Server ProtocolVersion: " + sversion);
 	        if (sversion.equals("003.003")) {
 	        	rfb_version = 3.3;
 	        } else if (sversion.equals("003.006")) {
@@ -724,7 +724,7 @@ public class RFB {
 				sendTimer.scheduleRepeating(50);
 	        }
 
-	        String cversion = "00" + (int) rfb_version + ".00" + ((rfb_version * 10) % 10);
+	        String cversion = "00" + (int) rfb_version + ".00" + (int) ((rfb_version * 10) % 10);
 	        ws.send_string("RFB " + cversion + "\n");
 	        updateState("Security", "Sent ProtocolVersion: " + cversion);
 		}
@@ -844,39 +844,48 @@ public class RFB {
 		}
 
 		if (rfb_state.equals("ServerInitialisation")) {
-	        if (ws.rQwait("server initialization", 24)) { return; }
 
-	        /* Screen size */
-	        fb_width  = ws.rQshift16();
-	        fb_height = ws.rQshift16();
-
-	        /* PIXEL_FORMAT */
-	        byte bpp            = ws.rQshift8();
-	        byte depth          = ws.rQshift8();
-	        byte big_endian     = ws.rQshift8();
-	        byte true_color     = ws.rQshift8();
-
-	        int red_max        = ws.rQshift16();
-	        int green_max      = ws.rQshift16();
-	        int blue_max       = ws.rQshift16();
-	        byte red_shift      = ws.rQshift8();
-	        byte green_shift    = ws.rQshift8();
-	        byte blue_shift     = ws.rQshift8();
-	        ws.rQshiftStr(3); // padding
-
-	        Util.Info("Screen: " + fb_width + "x" + fb_height + 
-	                  ", bpp: " + bpp + ", depth: " + depth +
-	                  ", big_endian: " + big_endian +
-	                  ", true_color: " + true_color +
-	                  ", red_max: " + red_max +
-	                  ", green_max: " + green_max +
-	                  ", blue_max: " + blue_max +
-	                  ", red_shift: " + red_shift +
-	                  ", green_shift: " + green_shift +
-	                  ", blue_shift: " + blue_shift);
+	        if (fb_width == 0) {
+	        	if (ws.rQwait("server initialization", 24)) { return; }
+	        	
+		        /* Screen size */
+		        fb_width  = ws.rQshift16();
+		        fb_height = ws.rQshift16();
+	
+		        /* PIXEL_FORMAT */
+		        byte bpp            = ws.rQshift8();
+		        byte depth          = ws.rQshift8();
+		        byte big_endian     = ws.rQshift8();
+		        byte true_color     = ws.rQshift8();
+	
+		        int red_max        = ws.rQshift16();
+		        int green_max      = ws.rQshift16();
+		        int blue_max       = ws.rQshift16();
+		        byte red_shift      = ws.rQshift8();
+		        byte green_shift    = ws.rQshift8();
+		        byte blue_shift     = ws.rQshift8();
+		        ws.rQshiftStr(3); // padding
+	
+		        Util.Info("Screen: " + fb_width + "x" + fb_height + 
+		                  ", bpp: " + bpp + ", depth: " + depth +
+		                  ", big_endian: " + big_endian +
+		                  ", true_color: " + true_color +
+		                  ", red_max: " + red_max +
+		                  ", green_max: " + green_max +
+		                  ", blue_max: " + blue_max +
+		                  ", red_shift: " + red_shift +
+		                  ", green_shift: " + green_shift +
+		                  ", blue_shift: " + blue_shift);
+	
+	        }
 
 	        /* Connection name/title */
 	        int name_length = ws.rQshift32();
+	        if (ws.rQwait("server initialization - name", name_length)) {
+	        	ws.rQunshift32(name_length);
+	        	return; 
+	        }
+	        
 	        fb_name = ws.rQshiftStr(name_length);
 
 //	        display.set_true_color(Defaults.true_color);
@@ -1511,9 +1520,9 @@ public class RFB {
 				0,  // little-endian
 				(byte) (Defaults.true_color ? 1 : 0),  // true-color
 
-				0, -127, //arr.push16(255);  // red-max (16) -- test!!
-				0, -127, //arr.push16(255);  // green-max (16) -- test!!
-				0, -127, //arr.push16(255);  // blue-max (16) -- test!!
+				0, -1, // red-max (255)
+				0, -1, // green-max (255)
+				0, -1, // blue-max (255)
 			    0,     // red-shift
 			    8,     // green-shift
 			    16,    // blue-shift
