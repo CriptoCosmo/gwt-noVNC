@@ -158,7 +158,18 @@ public class WebSock {
 	        rQi -= 1;
 	        rQ[rQi] = num;
 	    }
-
+	}
+	public void rQunshift32(int num) {
+		byte[] bnum = JSUtils.intAsByte32(num);
+	    if (rQi == 0) {
+	    	rQ = jsConcat(bnum, rQ);
+	    } else {
+	        rQi -= 4;
+	        rQ[rQi] = bnum[0];
+	        rQ[rQi+1] = bnum[0+1];
+	        rQ[rQi+2] = bnum[0+2];
+	        rQ[rQi+3] = bnum[0+3];
+	    }
 	}
 	public int rQshift16() {
 	    return (rQ[rQi++] <<  8) +
@@ -217,7 +228,13 @@ public class WebSock {
 
 	private String encode_message(byte[] data) {
 	    /* base64 encode */
+		try {
 	    return Base64.encode(data);
+		} catch (Throwable t) {
+			t.printStackTrace();
+			System.err.println("howdy");
+			return "";
+		}
 	}
 
 	private void decode_message(String data) {
