@@ -50,6 +50,11 @@ public class Base64 {
 	/* Convert data (an array of integers) to a Base64 string. */
 	private static final String toBase64Table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 	private static final char base64Pad     = '=';
+	
+	// converts byte to unsigned value
+	private static int u(byte b) {
+		return b & 0xff;
+	}
 
 	public static String encode(byte[] data) {
 	    String result = "";
@@ -58,18 +63,18 @@ public class Base64 {
 
 	    // Convert every three bytes to 4 ascii characters.
 	    for (int i = 0; i < (length - 2); i += 3) {
-	        result += chrTable[data[i] >> 2];
-	        result += chrTable[((data[i] & 0x03) << 4) + (data[i+1] >> 4)];
-	        result += chrTable[((data[i+1] & 0x0f) << 2) + (data[i+2] >> 6)];
+	        result += chrTable[u(data[i]) >> 2];
+	        result += chrTable[((data[i] & 0x03) << 4) + (u(data[i+1]) >> 4)];
+	        result += chrTable[((data[i+1] & 0x0f) << 2) + (u(data[i+2]) >> 6)];
 	        result += chrTable[data[i+2] & 0x3f];
 	    }
 
 	    // Convert the remaining 1 or 2 bytes, pad out to 4 characters.
-	    if (length%3 == 0) {
+	    if (length%3 != 0) {
 	        int i = length - (length%3);
-	        result += chrTable[data[i] >> 2];
+	        result += chrTable[u(data[i]) >> 2];
 	        if ((length%3) == 2) {
-	            result += chrTable[((data[i] & 0x03) << 4) + (data[i+1] >> 4)];
+	            result += chrTable[((data[i] & 0x03) << 4) + (u(data[i+1]) >> 4)];
 	            result += chrTable[(data[i+1] & 0x0f) << 2];
 	            result += base64Pad;
 	        } else {
