@@ -1,5 +1,11 @@
 package noVNC.core;
 
+import noVNC.utils.Point;
+
+import com.google.gwt.dom.client.Document;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
+
 public class Util {
 
 //	"use strict";
@@ -173,74 +179,96 @@ public class Util {
 //	 * Cross-browser routines
 //	 */
 //
-//	// Get DOM element position on page
-//	Util.getPosition = function (obj) {
-//	    var x = 0, y = 0;
-//	    if (obj.offsetParent) {
-//	        do {
-//	            x += obj.offsetLeft;
-//	            y += obj.offsetTop;
-//	            obj = obj.offsetParent;
-//	        } while (obj);
-//	    }
-//	    return {'x': x, 'y': y};
-//	};
-//
-//	// Get mouse event position in DOM element
-//	Util.getEventPosition = function (e, obj, scale) {
-//	    var evt, docX, docY, pos;
+	// Get DOM element position on page
+	public static Point getPosition(Element obj) {
+	    int x = 0, y = 0;
+	    while (obj.getOffsetParent() != null) {
+	    	x += obj.getOffsetLeft();
+            y += obj.getOffsetHeight();
+            obj = obj.getOffsetParent();
+	    }
+	    return new Point(x, y);
+	}
+
+	
+	// Get mouse event position in DOM element
+	public static Point getEventPosition(NativeEvent e, Element obj, float scale) {
+		
+		//	    var evt, docX, docY, pos;
+		NativeEvent evt = null;
+		int docX = 0, docY = 0;
+//		Point pos;
+		
 //	    //if (!e) evt = window.event;
 //	    evt = (e ? e : window.event);
+		if (e != null)	{
+			evt = e;
+		} else {
+			//check for default event
+		}
 //	    evt = (evt.changedTouches ? evt.changedTouches[0] : evt.touches ? evt.touches[0] : evt);
-//	    if (evt.pageX || evt.pageY) {
-//	        docX = evt.pageX;
-//	        docY = evt.pageY;
-//	    } else if (evt.clientX || evt.clientY) {
-//	        docX = evt.clientX + document.body.scrollLeft +
-//	            document.documentElement.scrollLeft;
-//	        docY = evt.clientY + document.body.scrollTop +
-//	            document.documentElement.scrollTop;
-//	    }
-//	    pos = Util.getPosition(obj);
-//	    if (typeof scale === "undefined") {
-//	        scale = 1;
-//	    }
-//	    return {'x': (docX - pos.x) / scale, 'y': (docY - pos.y) / scale};
-//	};
-//
-//
-//	// Event registration. Based on: http://www.scottandrew.com/weblog/articles/cbs-events
-//	Util.addEvent = function (obj, evType, fn){
-//	    if (obj.attachEvent){
-//	        var r = obj.attachEvent("on"+evType, fn);
-//	        return r;
-//	    } else if (obj.addEventListener){
-//	        obj.addEventListener(evType, fn, false); 
-//	        return true;
-//	    } else {
-//	        throw("Handler could not be attached");
-//	    }
-//	};
-//
-//	Util.removeEvent = function(obj, evType, fn){
-//	    if (obj.detachEvent){
-//	        var r = obj.detachEvent("on"+evType, fn);
-//	        return r;
-//	    } else if (obj.removeEventListener){
-//	        obj.removeEventListener(evType, fn, false);
-//	        return true;
-//	    } else {
-//	        throw("Handler could not be removed");
-//	    }
-//	};
-//
-//	Util.stopEvent = function(e) {
+		
+	    if (evt.getScreenX() != 0 || evt.getScreenY() != 0) {
+	        docX = evt.getScreenX();
+	        docY = evt.getScreenY();
+	    } else if (evt.getClientX() != 0 || evt.getClientY() != 0) {
+	        docX = evt.getClientX() + 
+	        //Document.get().getBody().getScrollLeft() + 
+	        Document.get().getScrollLeft();  
+	        docY = evt.getClientY() + 
+	        //Document.get().getBody().getScrollTop() + 
+	        Document.get().getScrollTop();
+	    }
+	    Point pos = Util.getPosition(obj);
+	    if (scale == 0.0)   scale = 1;
+	    return new Point((int)((docX - pos.x) / scale), (int)((docY - pos.y) / scale));
+	}
+	
+	public interface NativeEventHandler {
+		public boolean run(NativeEvent e);
+	}
+
+	// Event registration. Based on: http://www.scottandrew.com/weblog/articles/cbs-events
+	public static native boolean addEvent(Element obj, String evType, NativeEventHandler neh)/*-{
+		var fn = $entry(function (e) {
+			neh.@noVNC.core.Util.NativeEventHandler::run(Lcom/google/gwt/dom/client/NativeEvent;)(e);
+		});
+	    if (obj.attachEvent){
+	        var r = obj.attachEvent("on"+evType, fn);
+	        return r;
+	    } else if (obj.addEventListener){
+	        obj.addEventListener(evType, fn, false); 
+	        return true;
+	    } else {
+	        throw("Handler could not be attached");
+	    }
+	}-*/;
+
+	public static native boolean removeEvent(Element obj, String evType, NativeEventHandler neh) /*-{
+		var fn = $entry(function(e) {
+			neh.@noVNC.core.Util.NativeEventHandler::run(Lcom/google/gwt/dom/client/NativeEvent;)(e);
+		});
+	    if (obj.detachEvent){
+	        var r = obj.detachEvent("on"+evType, fn);
+	        return r;
+	    } else if (obj.removeEventListener){
+	        obj.removeEventListener(evType, fn, false);
+	        return true;
+	    } else {
+	        throw("Handler could not be removed");
+	    }
+	}-*/;
+
+	
+	public static void stopEvent(NativeEvent e) {
+		e.stopPropagation();
+		e.preventDefault();
 //	    if (e.stopPropagation) { e.stopPropagation(); }
 //	    else                   { e.cancelBubble = true; }
 //
 //	    if (e.preventDefault)  { e.preventDefault(); }
 //	    else                   { e.returnValue = false; }
-//	};
+	};
 //
 //
 //	// Set browser engine versions. Based on mootools.

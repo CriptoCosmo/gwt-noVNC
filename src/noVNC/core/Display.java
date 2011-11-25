@@ -98,7 +98,7 @@ public class Display {
 //	    }
 //
 //	    c = conf.target;
-		CanvasElement c = (CanvasElement) Defaults.map.get("target");
+		CanvasElement c = (CanvasElement) Defaults.target;
 //
 //	    if (! c.getContext) { throw("no getContext method"); }
 //
@@ -220,6 +220,11 @@ public class Display {
 	public void viewportChange() {
 //		viewportChange(-1, -1, -1, -1);
 	}
+	
+	public void viewportChange(int deltaX, int deltaY) {
+		viewportChange(deltaX, deltaY, -1, -1);
+	}
+	
 	public void viewportChange(int deltaX, int deltaY, int width, int height) {
 //	    var c = conf.target, v = viewport, cr = cleanRect,
 //	        saveImg = null, saveStyle, x1, y1, vx2, vy2, w, h;
@@ -409,13 +414,14 @@ public class Display {
 	};
 
 //	// Translate viewport coordinates to absolute coordinates
-//	that.absX = function(x) {
-//	    return x + viewport.x;
-//	}
-//	that.absY = function(y) {
-//	    return y + viewport.y;
-//	}
-//
+	public int absX(int x) {
+		return x + viewport.x;
+	}
+
+	public int absY(int y) {
+	    return y + viewport.y;
+	}
+
 
 	public void resize(int width, int height) {
 	    c_prevStyle    = "";
@@ -449,7 +455,7 @@ public class Display {
 	public void copyImage(int old_x, int old_y, int new_x, int new_y, int w, int h) {
 	    int x1 = old_x - viewport.x, y1 = old_y - viewport.y,
 	        x2 = new_x - viewport.x, y2 = new_y  - viewport.y;
-	    c_ctx.drawImage((CanvasElement) Defaults.map.get("target"), x1, y1, w, h, x2, y2, w, h);
+	    c_ctx.drawImage((CanvasElement) Defaults.target, x1, y1, w, h, x2, y2, w, h);
 	};
 
 

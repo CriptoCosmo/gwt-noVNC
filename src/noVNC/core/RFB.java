@@ -8,6 +8,7 @@ import java.util.Set;
 
 import noVNC.core.Display.CleanDirtyResetReturn;
 import noVNC.core.WebSocket.MessageEvent;
+import noVNC.utils.Point;
 import noVNC.utils.Rect;
 
 import com.google.gwt.canvas.dom.client.Context2d;
@@ -83,8 +84,8 @@ public class RFB {
 
 	    private WebSock ws		= null;   // Websock object
 	    private Display display = null;   // Display object
-//	    keyboard       = null,   // Keyboard input handler object
-//	    mouse          = null,   // Mouse input handler object
+	    private Keyboard keyboard = null; // Keyboard input handler object
+	    private Mouse mouse = null; // Mouse input handler object
 	    Timer sendTimer      = null;   // Send Queue check timer
 	    Timer connTimer      = null;   // connection timer
 	    Timer disconnTimer   = null;   // disconnection timer
@@ -147,10 +148,10 @@ public class RFB {
 //	    def_con_timeout  = Websock_native ? 2 : 5,
 //
 //	    /* Mouse state */
-//	    mouse_buttonMask = 0,
+	    private byte mouse_buttonMask = 0;
 	    byte[] mouse_arr        = new byte[] {};
 	    private boolean viewportDragging = false;
-//	    viewportDragPos  = {};
+	    Point viewportDragPos = new Point();
 //
 //	// Configuration attributes
 //	Util.conf_defaults(conf, that, defaults, [
@@ -239,12 +240,29 @@ public class RFB {
 //	        Util.Error("Display exception: " + exc);
 //	        updateState("fatal", "No working Display");
 //	    }
-//	    keyboard = new Keyboard({"target": conf.focusContainer,
-//	                                "onKeyPress": keyPress});
-//	    mouse    = new Mouse({"target": conf.target,
-//	                            "onMouseButton": mouseButton,
-//	                            "onMouseMove": mouseMove});
-//
+
+	    keyboard = new Keyboard();
+	    keyboard.hook(new Keyboard.KeyboardHandler() {
+			@Override
+			public void onKeyPress(int keysym, byte down) {
+				keyPress(keysym, down);
+			}
+	    	
+		});
+	    
+		mouse = new Mouse();
+		mouse.hook(new Mouse.MouseHandler() {
+			@Override
+			public void onMouseButton(int x, int y, boolean down, int bmask) {
+				mouseButton(x, y, down, bmask);
+			}
+
+			@Override
+			public void onMouseMove(int x, int y) {
+				mouseMove(x, y);
+			}
+		});
+
 //	    rmode = display.get_render_mode();
 //
 	    ws = new WebSock();
@@ -417,9 +435,9 @@ public class RFB {
 	            msgTimer = null;
 	        }
 
-//	        if (display != null && display.get_context()) {
-//	            keyboard.ungrab();
-//	            mouse.ungrab();
+	        if (display != null && display.get_context() != null) {
+	            keyboard.ungrab();
+	            mouse.ungrab();
 //	            display.defaultCursor();
 //	            if ((Util.get_logging() !== "debug") ||
 //	                (state === "loaded")) {
@@ -427,7 +445,7 @@ public class RFB {
 //	                // debug is off
 //	                display.clear();
 //	            }
-//	        }
+	        }
 
 	        ws.close();
 	    }
@@ -616,58 +634,55 @@ public class RFB {
 	    }
 	    new CheckEventsTimer().schedule(Defaults.check_rate);
 	}
-//
-//	keyPress = function(keysym, down) {
-//	    var arr;
-//	    arr = keyEvent(keysym, down);
-//	    arr = arr.concat(fbUpdateRequests());
-//	    ws.send(arr);
-//	};
-//
-//	mouseButton = function(x, y, down, bmask) {
-//	    if (down) {
-//	        mouse_buttonMask |= bmask;
-//	    } else {
-//	        mouse_buttonMask ^= bmask;
-//	    }
-//
-//	    if (conf.viewportDrag) {
-//	        if (down && !viewportDragging) {
-//	            viewportDragging = true;
-//	            viewportDragPos = {"x": x, "y": y};
-//
-//	            // Skip sending mouse events
-//	            return;
-//	        } else {
-//	            viewportDragging = false;
-//	        }
-//	    }
-//
-//	    mouse_arr = mouse_arr.concat(
-//	            pointerEvent(display.absX(x), display.absY(y)) );
-//	    flushClient();
-//	};
-//
-//	mouseMove = function(x, y) {
+	
+	public void keyPress(int keysym, byte down) {
+	    byte[] arr = new byte[]{};
+	    arr = keyEvent(keysym, down);
+	    arr = JSUtils.concat(arr, fbUpdateRequests());
+	    ws.send(arr);
+	}
+	
+		public void mouseButton (int x, int y, boolean down, int bmask) {
+			 if (down) {
+			        mouse_buttonMask |= bmask;
+			    } else {
+			        mouse_buttonMask ^= bmask;
+			    }
+			 if (Defaults.viewportDrag) {
+			        if (down && !viewportDragging) {
+			            viewportDragging = true;
+			            viewportDragPos.x = x;
+			            viewportDragPos.y = y;
+			            // Skip sending mouse events
+			            return;
+			        } else {
+			            viewportDragging = false;
+			        }
+			   }
+		
+			 mouse_arr = JSUtils.concat(mouse_arr, pointerEvent(display.absX(x), display.absY(y)));
+//			 mouse_arr = mouse_arr.concat(pointerEvent(display.absX(x), display.absY(y)));
+			 flushClient();
+		}
+
+		public void	mouseMove (int x, int y) {
 //	    //Util.Debug(">> mouseMove " + x + "," + y);
-//	    var deltaX, deltaY;
-//
-//	    if (viewportDragging) {
-//	        //deltaX = x - viewportDragPos.x; // drag viewport
-//	        deltaX = viewportDragPos.x - x; // drag frame buffer
-//	        //deltaY = y - viewportDragPos.y; // drag viewport
-//	        deltaY = viewportDragPos.y - y; // drag frame buffer
-//	        viewportDragPos = {"x": x, "y": y};
-//
-//	        display.viewportChange(deltaX, deltaY);
-//
-//	        // Skip sending mouse events
-//	        return;
-//	    }
-//
-//	    mouse_arr = mouse_arr.concat(
-//	            pointerEvent(display.absX(x), display.absY(y)) );
-//	};
+	    int deltaX, deltaY;
+
+	    if (viewportDragging) {
+	        //deltaX = x - viewportDragPos.x; // drag viewport
+	        deltaX = viewportDragPos.x - x; // drag frame buffer
+	        //deltaY = y - viewportDragPos.y; // drag viewport
+	        deltaY = viewportDragPos.y - y; // drag frame buffer
+	        viewportDragPos.x = x;
+            viewportDragPos.y = y;
+	        display.viewportChange(deltaX, deltaY);
+	        // Skip sending mouse events
+	        return;
+	    }
+
+	    mouse_arr = JSUtils.concat(mouse_arr, pointerEvent(display.absX(x), display.absY(y)));
+	}
 
 
 	//
@@ -890,8 +905,8 @@ public class RFB {
 
 //	        display.set_true_color(Defaults.true_color);
 	        display.resize(fb_width, fb_height);
-//	        keyboard.grab();
-//	        mouse.grab();
+	        keyboard.grab();
+	        mouse.grab();
 
 	        if (Defaults.true_color) {
 	            fb_Bpp           = 4;
@@ -1599,30 +1614,26 @@ public class RFB {
 	    return arr;
 	};
 
+	public byte[] keyEvent (int keysym, byte down) {
+	    //Util.Debug(">> keyEvent, keysym: " + keysym + ", down: " + down);
+	    byte[] arr = new byte[] {
+	    		4, // msg-type
+	    		down
+	    		}; 
+	    return JSUtils.concat(arr, JSUtils.intAsByte16(0), JSUtils.intAsByte32(keysym));
+	    //Util.Debug("<< keyEvent");
+	}
 
-//
-//	keyEvent = function(keysym, down) {
-//	    //Util.Debug(">> keyEvent, keysym: " + keysym + ", down: " + down);
-//	    var arr;
-//	    arr = [4];  // msg-type
-//	    arr.push8(down);
-//	    arr.push16(0);
-//	    arr.push32(keysym);
-//	    //Util.Debug("<< keyEvent");
-//	    return arr;
-//	};
-//
-//	pointerEvent = function(x, y) {
-//	    //Util.Debug(">> pointerEvent, x,y: " + x + "," + y +
-//	    //           " , mask: " + mouse_buttonMask);
-//	    var arr;
-//	    arr = [5];  // msg-type
-//	    arr.push8(mouse_buttonMask);
-//	    arr.push16(x);
-//	    arr.push16(y);
-//	    //Util.Debug("<< pointerEvent");
-//	    return arr;
-//	};
+	private byte[] pointerEvent(int x, int y) {
+	    //Util.Debug(">> pointerEvent, x,y: " + x + "," + y +
+	    //           " , mask: " + mouse_buttonMask);
+	    byte[] arr = new byte[] {
+	    		5,  // msg-type
+	    		mouse_buttonMask
+	    };
+	    //Util.Debug("<< pointerEvent");
+	    return JSUtils.concat(arr, JSUtils.intAsByte16(x), JSUtils.intAsByte16(y));
+	};
 //
 //	clientCutText = function(text) {
 //	    //Util.Debug(">> clientCutText");
