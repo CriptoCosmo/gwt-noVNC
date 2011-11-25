@@ -5,6 +5,7 @@ import com.google.gwt.dom.client.NativeEvent;
 
 import noVNC.core.WebSocket.MessageEvent;
 import noVNC.core.WebSocket.WebSocketHandler;
+import noVNC.utils.DataUtils;
 
 /**
  * Websock is similar to the standard WebSocket object but Websock
@@ -228,18 +229,13 @@ public class WebSock {
 
 	private String encode_message(byte[] data) {
 	    /* base64 encode */
-		try {
-	    return Base64.encode(data);
-		} catch (Throwable t) {
-			t.printStackTrace();
-			System.err.println("howdy");
-			return "";
-		}
+		return Base64.encode(data);
 	}
 
 	private void decode_message(String data) {
 	    //Util.Debug(">> decode_message: " + data);
 	    /* base64 decode */
+		DataUtils.printCSData(DataUtils.receiving, new String(Base64.decode(data, 0)), data);
 		rQ = jsConcat(rQ, Base64.decode(data, 0));
 
 		//Util.Debug(">> decode_message, rQ: " + rQ);
@@ -257,6 +253,7 @@ public class WebSock {
 	        //Util.Debug("arr: " + arr);
 	        //Util.Debug("sQ: " + sQ);
 	        if (sQ.length > 0) {
+    			DataUtils.printSCData(DataUtils.sending, new String(sQ), encode_message(sQ));
 	            websocket.send(encode_message(sQ));
 	        	sQ = new byte[] {};
 	        }
