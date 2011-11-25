@@ -79,7 +79,8 @@ public class Base64 {
 	            result += base64Pad;
 	        } else {
 	            result += chrTable[(data[i] & 0x03) << 4];
-	            result += base64Pad + base64Pad;
+	            result += base64Pad;
+	            result += base64Pad;
 	        }
 	    }
 
