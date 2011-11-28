@@ -1053,7 +1053,8 @@ public class RFB {
 
 	        timing.last_fbu = (new Date()).getTime();
 
-	        boolean ret = encHandlers.get("" + FBU.encoding + "").run(this);
+	        EncHandler handler = encHandlers.get("" + FBU.encoding + "");
+	        boolean ret = handler.run(this);
 
 	        now = (new Date()).getTime();
 	        timing.cur_fbu += (now - timing.last_fbu);
