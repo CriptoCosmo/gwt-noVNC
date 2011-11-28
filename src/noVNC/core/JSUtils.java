@@ -10,6 +10,14 @@ public class JSUtils {
 		System.arraycopy(in, 0, result, orig.length, in.length);
 		return result;
 	}
+	
+	public static byte[] concat(byte[] orig, byte[] in1, byte[] in2) {
+		byte[] ret;
+		ret = concat(orig, in1);
+		ret = concat(ret, in2);
+		return ret;
+	}
+	
 	public static byte[] concat(byte[] orig, byte[] in1, byte[] in2, byte[] in3, byte[] in4) {
 		byte[] ret;
 		ret = concat(orig, in1);
