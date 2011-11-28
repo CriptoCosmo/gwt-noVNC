@@ -1,8 +1,10 @@
 package noVNC.core;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,10 +52,10 @@ public class RFB {
 	
 		private static class KV {
 			public String key;
-			public byte val;
+			public int val;
 			public KV(String _key, int _val) {
 				this.key = _key;
-				this.val = (byte) _val;
+				this.val = _val;
 			}
 		};
 	    // In preference order
@@ -1537,7 +1539,7 @@ public class RFB {
 	private byte[] clientEncodings() {
 	    //Util.Debug(">> clientEncodings");
 		
-		byte [] encList = new byte[encodings.length];
+		List<Integer> encList = new ArrayList<Integer>(encodings.length);
 
 	    for (int i=0; i<encodings.length; i += 1) {
 	        if ((encodings[i].key.equals("Cursor")) &&
@@ -1545,7 +1547,7 @@ public class RFB {
 	            Util.Debug("Skipping Cursor pseudo-encoding");
 	        } else {
 	            //Util.Debug("Adding encoding: " + encodings[i][0]);
-	            encList[i] = encodings[i].val;
+	            encList.add(encodings[i].val);
 	        }
 	    }
 
@@ -1553,10 +1555,10 @@ public class RFB {
 			2,      // msg-type
 			0,  // padding
 
-			0, (byte) encList.length, // encoding count
+			0, (byte) encList.size(), // encoding count
 		};
-	    for (int i=0; i < encList.length; i += 1) {
-	        arr = JSUtils.concat(arr, new byte[] {0, 0, 0, encList[i]});	// test!!
+	    for (int i=0; i < encList.size(); i += 1) {
+	        arr = JSUtils.concat(arr, JSUtils.intAsByte32(encList.get(i)));
 	    }
 	    //Util.Debug("<< clientEncodings: " + arr);
 	    return arr;
