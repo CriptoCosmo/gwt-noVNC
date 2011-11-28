@@ -3,16 +3,19 @@ package noVNC.core;
 import java.util.ArrayList;
 import java.util.List;
 
-import noVNC.core.Display.CleanDirtyResetReturn;
 import noVNC.utils.Point;
 import noVNC.utils.Rect;
 
 import com.google.gwt.canvas.dom.client.CanvasPixelArray;
 import com.google.gwt.canvas.dom.client.Context2d;
+import com.google.gwt.canvas.dom.client.FillStrokeStyle;
 import com.google.gwt.canvas.dom.client.ImageData;
 import com.google.gwt.dom.client.CanvasElement;
-import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.dom.client.Style.Cursor;
+import com.google.gwt.event.dom.client.LoadEvent;
+import com.google.gwt.event.dom.client.LoadHandler;
+import com.google.gwt.user.client.ui.Image;
 
 public class Display {
 
@@ -36,10 +39,10 @@ public class Display {
 	    // The full frame buffer (logical canvas) size
 	    int fb_width        = 0;
 	    int fb_height       = 0;
-//	    // The visible "physical canvas" viewport
+	    // The visible "physical canvas" viewport
 	    Rect viewport       = new Rect();
 	    Rect cleanRect      = new Rect(new Point(0, 0), new Point(-1, -1));
-//
+
 	    private String c_prevStyle       = "";
 	    private ImageData tile           = null;
 	    private ImageData tile16x16      = null;
@@ -98,7 +101,7 @@ public class Display {
 //	    }
 //
 //	    c = conf.target;
-		CanvasElement c = (CanvasElement) Defaults.map.get("target");
+		CanvasElement c = (CanvasElement) Defaults.target;
 //
 //	    if (! c.getContext) { throw("no getContext method"); }
 //
@@ -218,138 +221,146 @@ public class Display {
 
 	// Shift and/or resize the visible viewport
 	public void viewportChange() {
-//		viewportChange(-1, -1, -1, -1);
+		viewportChange(-1, -1, -1, -1);
+	}
+	public void viewportChange(int deltaX, int deltaY) {
+		viewportChange(deltaX, deltaY, -1, -1);
 	}
 	public void viewportChange(int deltaX, int deltaY, int width, int height) {
 //	    var c = conf.target, v = viewport, cr = cleanRect,
-//	        saveImg = null, saveStyle, x1, y1, vx2, vy2, w, h;
-//
-//	    if (!conf.viewport) {
-//	        Util.Debug("Setting viewport to full display region");
-//	        deltaX = -v.w; // Clamped later if out of bounds
-//	        deltaY = -v.h; // Clamped later if out of bounds
-//	        width = fb_width;
-//	        height = fb_height;
-//	    }
-//
-//	    if (typeof(deltaX) === "undefined") { deltaX = 0; }
-//	    if (typeof(deltaY) === "undefined") { deltaY = 0; }
-//	    if (typeof(width) === "undefined") { width = v.w; }
-//	    if (typeof(height) === "undefined") { height = v.h; }
-//
-//	    // Size change
-//
-//	    if (width > fb_width) { width = fb_width; }
-//	    if (height > fb_height) { height = fb_height; }
-//
-//	    if ((v.w !== width) || (v.h !== height)) {
-//	        // Change width
-//	        if ((width < v.w) && (cr.x2 > v.x + width -1)) {
-//	            cr.x2 = v.x + width - 1;
-//	        }
-//	        v.w = width;
-//
-//	        // Change height
-//	        if ((height < v.h) && (cr.y2 > v.y + height -1)) {
-//	            cr.y2 = v.y + height - 1;
-//	        }
-//	        v.h = height;
-//
-//
-//	        if (v.w > 0 && v.h > 0 && c.width > 0 && c.height > 0) {
-//	            saveImg = c_ctx.getImageData(0, 0,
-//	                    (c.width < v.w) ? c.width : v.w,
-//	                    (c.height < v.h) ? c.height : v.h);
-//	        }
-//
-//	        c.width = v.w;
-//	        c.height = v.h;
-//
-//	        if (saveImg) {
-//	            c_ctx.putImageData(saveImg, 0, 0);
-//	        }
-//	    }
-//
-//	    vx2 = v.x + v.w - 1;
-//	    vy2 = v.y + v.h - 1;
-//
-//
-//	    // Position change
-//
-//	    if ((deltaX < 0) && ((v.x + deltaX) < 0)) {
-//	        deltaX = - v.x;
-//	    }
-//	    if ((vx2 + deltaX) >= fb_width) {
-//	        deltaX -= ((vx2 + deltaX) - fb_width + 1);
-//	    }
-//
-//	    if ((v.y + deltaY) < 0) {
-//	        deltaY = - v.y;
-//	    }
-//	    if ((vy2 + deltaY) >= fb_height) {
-//	        deltaY -= ((vy2 + deltaY) - fb_height + 1);
-//	    }
-//
-//	    if ((deltaX === 0) && (deltaY === 0)) {
-//	        //Util.Debug("skipping viewport change");
-//	        return;
-//	    }
-//	    Util.Debug("viewportChange deltaX: " + deltaX + ", deltaY: " + deltaY);
-//
-//	    v.x += deltaX;
-//	    vx2 += deltaX;
-//	    v.y += deltaY;
-//	    vy2 += deltaY;
-//
-//	    // Update the clean rectangle
-//	    if (v.x > cr.x1) {
-//	        cr.x1 = v.x;
-//	    }
-//	    if (vx2 < cr.x2) {
-//	        cr.x2 = vx2;
-//	    }
-//	    if (v.y > cr.y1) {
-//	        cr.y1 = v.y;
-//	    }
-//	    if (vy2 < cr.y2) {
-//	        cr.y2 = vy2;
-//	    }
-//
-//	    if (deltaX < 0) {
-//	        // Shift viewport left, redraw left section
-//	        x1 = 0;
-//	        w = - deltaX;
-//	    } else {
-//	        // Shift viewport right, redraw right section
-//	        x1 = v.w - deltaX;
-//	        w = deltaX;
-//	    }
-//	    if (deltaY < 0) {
-//	        // Shift viewport up, redraw top section
-//	        y1 = 0;
-//	        h = - deltaY;
-//	    } else {
-//	        // Shift viewport down, redraw bottom section
-//	        y1 = v.h - deltaY;
-//	        h = deltaY;
-//	    }
-//
-//	    // Copy the valid part of the viewport to the shifted location
-//	    saveStyle = c_ctx.fillStyle;
-//	    c_ctx.fillStyle = "rgb(255,255,255)";
-//	    if (deltaX !== 0) {
-//	        //that.copyImage(0, 0, -deltaX, 0, v.w, v.h);
-//	        //that.fillRect(x1, 0, w, v.h, [255,255,255]);
-//	        c_ctx.drawImage(c, 0, 0, v.w, v.h, -deltaX, 0, v.w, v.h);
-//	        c_ctx.fillRect(x1, 0, w, v.h);
-//	    }
-//	    if (deltaY !== 0) {
-//	        //that.copyImage(0, 0, 0, -deltaY, v.w, v.h);
-//	        //that.fillRect(0, y1, v.w, h, [255,255,255]);
-//	        c_ctx.drawImage(c, 0, 0, v.w, v.h, 0, -deltaY, v.w, v.h);
-//	        c_ctx.fillRect(0, y1, v.w, h);
-//	    }
-//	    c_ctx.fillStyle = saveStyle;
+//	        saveImg = null, saveStyle, 
+		CanvasElement c = (CanvasElement) Defaults.target;
+		Rect v = viewport;
+		Rect cr = cleanRect;
+
+	    if (!Defaults.viewport) {
+	        Util.Debug("Setting viewport to full display region");
+	        deltaX = -v.w; // Clamped later if out of bounds
+	        deltaY = -v.h; // Clamped later if out of bounds
+	        width = fb_width;
+	        height = fb_height;
+	    }
+
+	    if (deltaX == -1) { deltaX = 0; }
+	    if (deltaY == -1) { deltaY = 0; }
+	    if (width == -1) { width = v.w; }
+	    if (height == -1) { height = v.h; }
+
+	    // Size change
+
+	    if (width > fb_width) { width = fb_width; }
+	    if (height > fb_height) { height = fb_height; }
+
+	    if ((v.w != width) || (v.h != height)) {
+	        // Change width
+	        if ((width < v.w) && (cr.x2() > v.x + width -1)) {
+	            cr.setX2(v.x + width - 1);
+	        }
+	        v.w = width;
+
+	        // Change height
+	        if ((height < v.h) && (cr.y2() > v.y + height -1)) {
+	            cr.setY2(v.y + height - 1);
+	        }
+	        v.h = height;
+
+
+	        ImageData saveImg = null;
+	        if (v.w > 0 && v.h > 0 && c.getWidth() > 0 && c.getHeight() > 0) {
+	            saveImg = c_ctx.getImageData(0, 0,
+	                    (c.getWidth() < v.w) ? c.getWidth() : v.w,
+	                    (c.getHeight() < v.h) ? c.getHeight() : v.h);
+	        }
+
+	    	c.setWidth(v.w);
+	    	c.setHeight(v.h);
+
+	        if (saveImg != null) {
+	            c_ctx.putImageData(saveImg, 0, 0);
+	        }
+	    }
+
+	    int vx2 = v.x2();
+	    int vy2 = v.y2();
+
+
+	    // Position change
+
+	    if ((deltaX < 0) && ((v.x + deltaX) < 0)) {
+	        deltaX = - v.x;
+	    }
+	    if ((vx2 + deltaX) >= fb_width) {
+	        deltaX -= ((vx2 + deltaX) - fb_width + 1);
+	    }
+
+	    if ((v.y + deltaY) < 0) {
+	        deltaY = - v.y;
+	    }
+	    if ((vy2 + deltaY) >= fb_height) {
+	        deltaY -= ((vy2 + deltaY) - fb_height + 1);
+	    }
+
+	    if ((deltaX == 0) && (deltaY == 0)) {
+	        //Util.Debug("skipping viewport change");
+	        return;
+	    }
+	    Util.Debug("viewportChange deltaX: " + deltaX + ", deltaY: " + deltaY);
+
+	    v.x += deltaX;
+	    vx2 += deltaX;
+	    v.y += deltaY;
+	    vy2 += deltaY;
+
+	    // Update the clean rectangle
+	    if (v.x > cr.x) {
+	        cr.x = v.x;
+	    }
+	    if (vx2 < cr.x2()) {
+	        cr.setX2(vx2);
+	    }
+	    if (v.y > cr.y) {
+	        cr.y = v.y;
+	    }
+	    if (vy2 < cr.y2()) {
+	        cr.setY2(vy2);
+	    }
+
+		int x1, y1, w, h;
+	    if (deltaX < 0) {
+	        // Shift viewport left, redraw left section
+	        x1 = 0;
+	        w = - deltaX;
+	    } else {
+	        // Shift viewport right, redraw right section
+	        x1 = v.w - deltaX;
+	        w = deltaX;
+	    }
+	    if (deltaY < 0) {
+	        // Shift viewport up, redraw top section
+	        y1 = 0;
+	        h = - deltaY;
+	    } else {
+	        // Shift viewport down, redraw bottom section
+	        y1 = v.h - deltaY;
+	        h = deltaY;
+	    }
+
+	    // Copy the valid part of the viewport to the shifted location
+	    FillStrokeStyle saveStyle = c_ctx.getFillStyle();
+	    c_ctx.setFillStyle("rgb(255,255,255)");
+	    if (deltaX != 0) {
+	        //that.copyImage(0, 0, -deltaX, 0, v.w, v.h);
+	        //that.fillRect(x1, 0, w, v.h, [255,255,255]);
+	        c_ctx.drawImage(c, 0, 0, v.w, v.h, -deltaX, 0, v.w, v.h);
+	        c_ctx.fillRect(x1, 0, w, v.h);
+	    }
+	    if (deltaY != 0) {
+	        //that.copyImage(0, 0, 0, -deltaY, v.w, v.h);
+	        //that.fillRect(0, y1, v.w, h, [255,255,255]);
+	        c_ctx.drawImage(c, 0, 0, v.w, v.h, 0, -deltaY, v.w, v.h);
+	        c_ctx.fillRect(0, y1, v.w, h);
+	    }
+	    c_ctx.setFillStyle(saveStyle);
 	};
 
 
@@ -362,12 +373,12 @@ public class Display {
 		Rect v = viewport;
 		CleanDirtyResetReturn ret = new CleanDirtyResetReturn();
 		
-		int vx2 = v.x + v.w - 1;
-		int vy2 = v.y + v.h - 1;
+		int vx2 = v.x2();
+		int vy2 = v.y2();
 		
 		Rect c = cleanRect;
-		int cx2 = c.x + c.w - 1;
-		int cy2 = c.y + c.h - 1;
+		int cx2 = c.x2();
+		int cy2 = c.y2();
 		
 		ret.dirtyBoxes = new ArrayList<Rect>(10);
 
@@ -409,13 +420,14 @@ public class Display {
 	};
 
 //	// Translate viewport coordinates to absolute coordinates
-//	that.absX = function(x) {
-//	    return x + viewport.x;
-//	}
-//	that.absY = function(y) {
-//	    return y + viewport.y;
-//	}
-//
+	public int absX(int x) {
+		return x + viewport.x;
+	}
+
+	public int absY(int y) {
+	    return y + viewport.y;
+	}
+
 
 	public void resize(int width, int height) {
 	    c_prevStyle    = "";
@@ -427,20 +439,20 @@ public class Display {
 	    viewportChange();
 	};
 
-//	that.clear = function() {
-//
-//	    if (conf.logo) {
-//	        that.resize(conf.logo.width, conf.logo.height);
-//	        that.blitStringImage(conf.logo.data, 0, 0);
-//	    } else {
-//	        that.resize(640, 20);
-//	        c_ctx.clearRect(0, 0, viewport.w, viewport.h);
-//	    }
-//
-//	    // No benefit over default ("source-over") in Chrome and firefox
-//	    //c_ctx.globalCompositeOperation = "copy";
-//	};
-//
+	public void clear() {
+
+	    if (Defaults.logo_str != null) {
+	        resize(Defaults.logo_width, Defaults.logo_height);
+	        blitStringImage(Defaults.logo_str, 0, 0);
+	    } else {
+	        resize(640, 20);
+	        c_ctx.clearRect(0, 0, viewport.w, viewport.h);
+	    }
+
+	    // No benefit over default ("source-over") in Chrome and firefox
+	    //c_ctx.globalCompositeOperation = "copy";
+	};
+
 	public void fillRect(int x, int y, int width, int height, byte[] color) {
 	    setFillColor(color);
 	    c_ctx.fillRect(x - viewport.x, y - viewport.y, width, height);
@@ -449,7 +461,7 @@ public class Display {
 	public void copyImage(int old_x, int old_y, int new_x, int new_y, int w, int h) {
 	    int x1 = old_x - viewport.x, y1 = old_y - viewport.y,
 	        x2 = new_x - viewport.x, y2 = new_y  - viewport.y;
-	    c_ctx.drawImage((CanvasElement) Defaults.map.get("target"), x1, y1, w, h, x2, y2, w, h);
+	    c_ctx.drawImage((CanvasElement) Defaults.target, x1, y1, w, h, x2, y2, w, h);
 	};
 
 
@@ -544,13 +556,11 @@ public class Display {
 	};
 
 	private void cmapImageData (int x, int y, int width, int height, byte[] arr, int offset) {
-//	    var img, i, j, data, rgb, cmap;
+//	    var img, i, j, data;
 	    ImageData img = c_ctx.createImageData(width, height);
 	    CanvasPixelArray data = img.getData();
-//	    cmap = conf.colourMap;
 	    for (int i=0, j=offset; i < (width * height * 4); i+=4, j+=1) {
-//	        rgb = cmap[arr[j]];
-	    	int[] rgb = new int[] {255, 0, 0}; 
+	        byte[] rgb = Defaults.colourMap[arr[j]];
 	        data.set(i    , rgb[0]);
 	        data.set(i + 1, rgb[1]);
 	        data.set(i + 2, rgb[2]);
@@ -566,15 +576,18 @@ public class Display {
 	        cmapImageData(x, y, width, height, arr, offset);
 	    }
 	};
-//
-//	that.blitStringImage = function(str, x, y) {
-//	    var img = new Image();
-//	    img.onload = function () {
-//	        c_ctx.drawImage(img, x - viewport.x, y - viewport.y);
-//	    };
-//	    img.src = str;
-//	};
-//
+
+	public void blitStringImage(String str, final int x, final int y) {
+	    final Image img = new Image();
+	    img.addLoadHandler(new LoadHandler() {
+			@Override
+			public void onLoad(LoadEvent event) {
+		        c_ctx.drawImage( (ImageElement) img.getElement().cast(), x - viewport.x, y - viewport.y);
+			}
+		});
+	    img.setUrl(str);
+	}
+
 //	that.changeCursor = function(pixels, mask, hotx, hoty, w, h) {
 //	    if (conf.cursor_uri === false) {
 //	        Util.Warn("changeCursor called but no cursor data URI support");
