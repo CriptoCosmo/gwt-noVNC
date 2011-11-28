@@ -61,7 +61,7 @@ public class UI {
 //
 
 		Element canvasElement = WebUtil.D("noVNC_canvas");
-		Defaults.map.put("target", canvasElement);
+		Defaults.target = canvasElement;
 //		this.rfb = new RFB({'target': $D('noVNC_canvas')}) {
 		this.rfb = new RFB();
 //		this.rfb = new RFB({'target': $D('noVNC_canvas')}) {
