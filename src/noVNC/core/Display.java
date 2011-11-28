@@ -223,9 +223,11 @@ public class Display {
 	public void viewportChange() {
 		viewportChange(-1, -1, -1, -1);
 	}
+	
 	public void viewportChange(int deltaX, int deltaY) {
 		viewportChange(deltaX, deltaY, -1, -1);
 	}
+	
 	public void viewportChange(int deltaX, int deltaY, int width, int height) {
 //	    var c = conf.target, v = viewport, cr = cleanRect,
 //	        saveImg = null, saveStyle, 
