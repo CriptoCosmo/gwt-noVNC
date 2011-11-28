@@ -14,7 +14,7 @@ public class Defaults {
 	public static byte[][] colourMap;
 	public static boolean shared = true;
 	public static float scale = 1.0f;
-	public static boolean local_cursor = true;
+	public static boolean local_cursor = false;			// Request locally rendered cursor
 	public static long fbu_req_rate = 1413;
 	public static int check_rate = 217;
 	
