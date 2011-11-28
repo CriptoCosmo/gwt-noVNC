@@ -33,6 +33,19 @@ public class Rect {
 		h = bottomRight.y - topLeft.y + 1;
 	}
 	
+	public final int x2() {
+		return x + w - 1;
+	}
+	public void setX2(int x2) {
+		w = x2 - x + 1;
+	}
+	public final int y2() {
+		return y + h - 1;
+	}
+	public void setY2(int y2) {
+		h = y2 - y + 1;
+	}
+	
 	public Point getTopLeft() {
 		return new Point(x, y);
 	}
