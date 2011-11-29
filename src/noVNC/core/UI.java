@@ -1,5 +1,7 @@
 package noVNC.core;
 
+import noVNC.core.RFB.RFBHandler;
+
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.InputElement;
@@ -10,7 +12,7 @@ import com.google.gwt.dom.client.Style.Display;
 
 public class UI {
 	
-//	rfb_state : 'loaded',
+//	rfb_state : "loaded",
 //	settingsOpen : false,
 //	connSettingsOpen : true,
 //	clipboardOpen: false,
@@ -24,7 +26,7 @@ public class UI {
 	public void load() {
 //		load: function() {
 
-//	    var html = '', i, sheet, sheets, llevels;
+//	    var html = "", i, sheet, sheets, llevels;
 		
 //	    // Stylesheet selection dropdown
 //	    String sheet = WebUtil.selectStylesheet(null);
@@ -41,30 +43,36 @@ public class UI {
 
 	    // Settings with immediate effects
 //	    UI.initSetting("logging", "warn");
-//	    WebUtil.init_logging(UI.getSetting('logging'));
+//	    WebUtil.init_logging(UI.getSetting("logging"));
 //
 //	    UI.initSetting("stylesheet", "default");
 //	    WebUtil.selectStylesheet(null);
 //	    // call twice to get around webkit bug
-//	    WebUtil.selectStylesheet(UI.getSetting('stylesheet'));
+//	    WebUtil.selectStylesheet(UI.getSetting("stylesheet"));
 //
 //	    /* Populate the controls if defaults are provided in the URL */
-//	    UI.initSetting('host', '');
-//	    UI.initSetting('port', '');
-//	    UI.initSetting('password', '');
-//	    UI.initSetting('encrypt', false);
-//	    UI.initSetting('true_color', true);
-//	    UI.initSetting('cursor', false);
-//	    UI.initSetting('shared', true);
-//	    UI.initSetting('connectTimeout', 2);
-//	    UI.initSetting('path', '');
+//	    UI.initSetting("host", "");
+//	    UI.initSetting("port", "");
+//	    UI.initSetting("password", "");
+//	    UI.initSetting("encrypt", false);
+//	    UI.initSetting("true_color", true);
+//	    UI.initSetting("cursor", false);
+//	    UI.initSetting("shared", true);
+//	    UI.initSetting("connectTimeout", 2);
+//	    UI.initSetting("path", "");
 //
 
 		Element canvasElement = WebUtil.D("noVNC_canvas");
 		Defaults.target = canvasElement;
-//		this.rfb = new RFB({'target': $D('noVNC_canvas')}) {
+//		this.rfb = new RFB({"target": WebUtil.D("noVNC_canvas")}) {
 		this.rfb = new RFB();
-//		this.rfb = new RFB({'target': $D('noVNC_canvas')}) {
+		this.rfb.hook(new RFBHandler() {
+			@Override
+			public void onUpdateState(RFB rfb, String state, String oldState, String statusMsg) {
+				UI.this.updateState(rfb, state, oldState, statusMsg);
+			}
+		});
+//		this.rfb = new RFB({"target": WebUtil.D("noVNC_canvas")}) {
 //	    	public void onUpdateState() {
 //	    		UI.updateState();
 //	    	}
@@ -76,24 +84,24 @@ public class UI {
 //	    UI.updateVisualState();
 //
 //	    // Unfocus clipboard when over the VNC area
-//	    //$D('VNC_screen').onmousemove = function () {
+//	    //WebUtil.D("VNC_screen").onmousemove = function () {
 //	    //         var keyboard = UI.rfb.get_keyboard();
 //	    //        if ((! keyboard) || (! keyboard.get_focused())) {
-//	    //            $D('VNC_clipboard_text').blur();
+//	    //            WebUtil.D("VNC_clipboard_text").blur();
 //	    //         }
 //	    //    };
 //
 //	    // Show mouse selector buttons on touch screen devices
-//	    if ('ontouchstart' in document.documentElement) {
+//	    if ("ontouchstart" in document.documentElement) {
 //	        // Show mobile buttons
-//	        $D('noVNC_mobile_buttons').style.display = "inline";
+//	        WebUtil.D("noVNC_mobile_buttons").style.display = "inline";
 //	        UI.setMouseButton();
 //	        // Remove the address bar
 //	        setTimeout(function() { window.scrollTo(0, 1); }, 100);
-//	        UI.forceSetting('clip', true);
-//	        $D('noVNC_clip').disabled = true;
+//	        UI.forceSetting("clip", true);
+//	        WebUtil.D("noVNC_clip").disabled = true;
 //	    } else {
-//	        UI.initSetting('clip', false);
+//	        UI.initSetting("clip", false);
 //	    }
 //
 //	    //iOS Safari does not support CSS position:fixed.
@@ -105,13 +113,13 @@ public class UI {
 //	        //UI.setResize();
 //	    }
 //
-//	    $D('noVNC_host').focus();
+//	    WebUtil.D("noVNC_host").focus();
 //
 //	    UI.setViewClip();
-//	    Util.addEvent(window, 'resize', UI.setViewClip);
+//	    Util.addEvent(window, "resize", UI.setViewClip);
 //
-//	    Util.addEvent(window, 'beforeunload', function () {
-//	        if (UI.rfb_state === 'normal') {
+//	    Util.addEvent(window, "beforeunload", function () {
+//	        if (UI.rfb_state === "normal") {
 //	            return "You are currently connected.";
 //	        }
 //	    } );
@@ -139,9 +147,9 @@ public class UI {
 	// Update cookie and form control setting. If value is not set, then
 	// updates from control to current cookie setting.
 	public static void updateSetting(String name, String value) {
-	    Element ctrl = WebUtil.D("noVNC_" + name);
+//	    Element ctrl = WebUtil.D("noVNC_" + name);
 	    // Save the cookie for this session
-//	    if (typeof value !== 'undefined') {
+//	    if (typeof value !== "undefined") {
 	        WebUtil.createCookie(name, value);
 //	    }
 
@@ -153,7 +161,7 @@ public class UI {
 //	    		((InputElement)ctrl).setChecked(true);
 //	    }
 	    // need to translate below to java
-//	    else if (typeof ctrl.options !== 'undefined') {
+//	    else if (typeof ctrl.options !== "undefined") {
 //	        for (i = 0; i < ctrl.options.length; i += 1) {
 //	            if (ctrl.options[i].value === value) {
 //	                ctrl.selectedIndex = i;
@@ -161,8 +169,8 @@ public class UI {
 //	            }
 //	        }
 //	    } else {
-//	        //Weird IE9 error leads to 'null' appearring
-//	        //in textboxes instead of ''.
+//	        //Weird IE9 error leads to "null" appearring
+//	        //in textboxes instead of "".
 //	        if (value === null) {
 //	            value = "";
 //	        }
@@ -173,16 +181,16 @@ public class UI {
 	
 //	// Save control setting to cookie
 //	saveSetting: function(name) {
-//	    var val, ctrl = $D('noVNC_' + name);
-//	    if (ctrl.type === 'checkbox') {
+//	    var val, ctrl = WebUtil.D("noVNC_" + name);
+//	    if (ctrl.type === "checkbox") {
 //	        val = ctrl.checked;
-//	    } else if (typeof ctrl.options !== 'undefined') {
+//	    } else if (typeof ctrl.options !== "undefined") {
 //	        val = ctrl.options[ctrl.selectedIndex].value;
 //	    } else {
 //	        val = ctrl.value;
 //	    }
 //	    WebUtil.createCookie(name, val);
-//	    //Util.Debug("Setting saved '" + name + "=" + val + "'");
+//	    //Util.Debug("Setting saved "" + name + "=" + val + """);
 //	    return val;
 //	},
 //
@@ -198,7 +206,7 @@ public class UI {
 	        val = WebUtil.readCookie(name, defVal);
 	    }
 	    UI.updateSetting(name, val);
-//	 //Util.Debug("Setting '" + name + "' initialized to '" + val + "'");
+//	 //Util.Debug("Setting "" + name + "" initialized to "" + val + """);
 //	    return val;
 	}
 
@@ -222,12 +230,12 @@ public class UI {
 //	    }
 //	    //Toggle Clipboard Panel
 //	    if (UI.clipboardOpen == true) {
-//	        $D('noVNC_clipboard').style.display = "none";
-//	        $D('clipboardButton').className = "noVNC_status_button";
+//	        WebUtil.D("noVNC_clipboard").style.display = "none";
+//	        WebUtil.D("clipboardButton").className = "noVNC_status_button";
 //	        UI.clipboardOpen = false;
 //	    } else {
-//	        $D('noVNC_clipboard').style.display = "block";
-//	        $D('clipboardButton').className = "noVNC_status_button_selected";
+//	        WebUtil.D("noVNC_clipboard").style.display = "block";
+//	        WebUtil.D("clipboardButton").className = "noVNC_status_button_selected";
 //	        UI.clipboardOpen = true;
 //	    }
 //	},
@@ -238,7 +246,7 @@ public class UI {
 //	    if (UI.settingsOpen == true) {
 //	        UI.settingsApply();
 //	        UI.closeSettingsMenu();
-//	        $D('connectButton').className = "noVNC_status_button";
+//	        WebUtil.D("connectButton").className = "noVNC_status_button";
 //	    }
 //	    if (UI.clipboardOpen == true) {
 //	        UI.toggleClipboardPanel();
@@ -246,14 +254,14 @@ public class UI {
 //
 //	    //Toggle Connection Panel
 //	    if (UI.connSettingsOpen == true) {
-//	        $D('noVNC_controls').style.display = "none";
-//	        $D('connectButton').className = "noVNC_status_button";
+//	        WebUtil.D("noVNC_controls").style.display = "none";
+//	        WebUtil.D("connectButton").className = "noVNC_status_button";
 //	        UI.connSettingsOpen = false;
 //	    } else {
-//	        $D('noVNC_controls').style.display = "block";
-//	        $D('connectButton').className = "noVNC_status_button_selected";
+//	        WebUtil.D("noVNC_controls").style.display = "block";
+//	        WebUtil.D("connectButton").className = "noVNC_status_button_selected";
 //	        UI.connSettingsOpen = true;
-//	        $D('noVNC_host').focus();
+//	        WebUtil.D("noVNC_host").focus();
 //	    }
 //	},
 //
@@ -265,20 +273,20 @@ public class UI {
 //	        UI.settingsApply();
 //	        UI.closeSettingsMenu();
 //	    } else {
-//	        UI.updateSetting('encrypt');
-//	        UI.updateSetting('true_color');
+//	        UI.updateSetting("encrypt");
+//	        UI.updateSetting("true_color");
 //	        if (UI.rfb.get_display().get_cursor_uri()) {
-//	            UI.updateSetting('cursor');
+//	            UI.updateSetting("cursor");
 //	        } else {
-//	            UI.updateSetting('cursor', false);
-//	            $D('noVNC_cursor').disabled = true;
+//	            UI.updateSetting("cursor", false);
+//	            WebUtil.D("noVNC_cursor").disabled = true;
 //	        }
-//	        UI.updateSetting('clip');
-//	        UI.updateSetting('shared');
-//	        UI.updateSetting('connectTimeout');
-//	        UI.updateSetting('path');
-//	        UI.updateSetting('stylesheet');
-//	        UI.updateSetting('logging');
+//	        UI.updateSetting("clip");
+//	        UI.updateSetting("shared");
+//	        UI.updateSetting("connectTimeout");
+//	        UI.updateSetting("path");
+//	        UI.updateSetting("stylesheet");
+//	        UI.updateSetting("logging");
 //
 //	        UI.openSettingsMenu();
 //	    }
@@ -293,36 +301,36 @@ public class UI {
 //	    if (UI.connSettingsOpen == true) {
 //	        UI.toggleConnectPanel();
 //	    }
-//	    $D('noVNC_settings').style.display = "block";
-//	    $D('settingsButton').className = "noVNC_status_button_selected";
+//	    WebUtil.D("noVNC_settings").style.display = "block";
+//	    WebUtil.D("settingsButton").className = "noVNC_status_button_selected";
 //	    UI.settingsOpen = true;
 //	},
 //
 //	// Close menu (without applying settings)
 //	closeSettingsMenu: function() {
-//	    $D('noVNC_settings').style.display = "none";
-//	    $D('settingsButton').className = "noVNC_status_button";
+//	    WebUtil.D("noVNC_settings").style.display = "none";
+//	    WebUtil.D("settingsButton").className = "noVNC_status_button";
 //	    UI.settingsOpen = false;
 //	},
 //
-//	// Save/apply settings when 'Apply' button is pressed
+//	// Save/apply settings when "Apply" button is pressed
 //	settingsApply: function() {
 //	    //Util.Debug(">> settingsApply");
-//	    UI.saveSetting('encrypt');
-//	    UI.saveSetting('true_color');
+//	    UI.saveSetting("encrypt");
+//	    UI.saveSetting("true_color");
 //	    if (UI.rfb.get_display().get_cursor_uri()) {
-//	        UI.saveSetting('cursor');
+//	        UI.saveSetting("cursor");
 //	    }
-//	    UI.saveSetting('clip');
-//	    UI.saveSetting('shared');
-//	    UI.saveSetting('connectTimeout');
-//	    UI.saveSetting('path');
-//	    UI.saveSetting('stylesheet');
-//	    UI.saveSetting('logging');
+//	    UI.saveSetting("clip");
+//	    UI.saveSetting("shared");
+//	    UI.saveSetting("connectTimeout");
+//	    UI.saveSetting("path");
+//	    UI.saveSetting("stylesheet");
+//	    UI.saveSetting("logging");
 //
 //	    // Settings with immediate (non-connected related) effect
-//	    WebUtil.selectStylesheet(UI.getSetting('stylesheet'));
-//	    WebUtil.init_logging(UI.getSetting('logging'));
+//	    WebUtil.selectStylesheet(UI.getSetting("stylesheet"));
+//	    WebUtil.init_logging(UI.getSetting("logging"));
 //	    UI.setViewClip();
 //	    UI.setViewDrag(UI.rfb.get_viewportDrag());
 //	    //Util.Debug("<< settingsApply");
@@ -331,10 +339,10 @@ public class UI {
 //
 //
 //	setPassword: function() {
-//	    UI.rfb.sendPassword($D('noVNC_password').value);
+//	    UI.rfb.sendPassword(WebUtil.D("noVNC_password").value);
 //	    //Reset connect button.
-//	    $D('noVNC_connect_button').value = "Connect";
-//	    $D('noVNC_connect_button').onclick = UI.Connect;
+//	    WebUtil.D("noVNC_connect_button").value = "Connect";
+//	    WebUtil.D("noVNC_connect_button").onclick = UI.Connect;
 //	    //Hide connection panel.
 //	    UI.toggleConnectPanel();
 //	    return false;
@@ -347,7 +355,7 @@ public class UI {
 //	setMouseButton: function(num) {
 //	    var b, blist = [0, 1,2,4], button;
 //
-//	    if (typeof num === 'undefined') {
+//	    if (typeof num === "undefined") {
 //	        // Disable mouse buttons
 //	        num = -1;
 //	    }
@@ -356,7 +364,7 @@ public class UI {
 //	    }
 //
 //	    for (b = 0; b < blist.length; b++) {
-//	        button = $D('noVNC_mouse_button' + blist[b]);
+//	        button = WebUtil.D("noVNC_mouse_button" + blist[b]);
 //	        if (blist[b] === num) {
 //	            button.style.display = "";
 //	        } else {
@@ -371,90 +379,84 @@ public class UI {
 //	    }
 //	},
 //
-//	updateState: function(rfb, state, oldstate, msg) {
+	private void updateState(RFB rfb, String state, String oldState, String msg) {
 //	    var s, sb, c, d, cad, vd, klass;
 //	    UI.rfb_state = state;
-//	    s = $D('noVNC_status');
-//	    sb = $D('noVNC_status_bar');
-//	    switch (state) {
-//	        case 'failed':
-//	        case 'fatal':
-//	            klass = "noVNC_status_error";
-//	            break;
-//	        case 'normal':
-//	            klass = "noVNC_status_normal";
-//	            break;
-//	        case 'disconnected':
-//	            $D('noVNC_logo').style.display = "block";
-//	        case 'loaded':
-//	            klass = "noVNC_status_normal";
-//	            break;
-//	        case 'password':
-//	            UI.toggleConnectPanel();
-//
-//	            $D('noVNC_connect_button').value = "Send Password";
-//	            $D('noVNC_connect_button').onclick = UI.setPassword;
-//	            $D('noVNC_password').focus();
-//
-//	            klass = "noVNC_status_warn";
-//	            break;
-//	        default:
-//	            klass = "noVNC_status_warn";
-//	            break;
-//	    }
-//
-//	    if (typeof(msg) !== 'undefined') {
-//	        s.setAttribute("class", klass);
-//	        sb.setAttribute("class", klass);
-//	        s.innerHTML = msg;
-//	    }
-//
+	    Element s = WebUtil.D("noVNC_status");
+	    Element sb = WebUtil.D("noVNC_status_bar");
+	    
+	    String klass = "noVNC_status_normal";
+	    
+	    if (state.equals("failed") || state.equals("fatal")) {
+			klass = "noVNC_status_error";
+	    } else if (state.equals("normal") || state.equals("loaded")){
+			klass = "noVNC_status_normal";
+	    } else if (state.equals("disconnected")){
+            WebUtil.D("noVNC_logo").getStyle().setDisplay(Display.BLOCK);
+	    } else if (state.equals("password")){
+//            UI.toggleConnectPanel();
+
+//            WebUtil.D("noVNC_connect_button").value = "Send Password";
+//            WebUtil.D("noVNC_connect_button").onclick = UI.setPassword;
+//            WebUtil.D("noVNC_password").focus();
+
+            klass = "noVNC_status_warn";
+	    } else {
+			klass = "noVNC_status_warn";
+	    }
+
+	    if (msg != null) {
+	        s.setAttribute("class", klass);
+	        sb.setAttribute("class", klass);
+	        s.setInnerHTML(msg);
+	    }
+
 //	    UI.updateVisualState();
-//	},
-//
+	}
+
 //	// Disable/enable controls depending on connection state
 //	updateVisualState: function() {
-//	    var connected = UI.rfb_state === 'normal' ? true : false;
+//	    var connected = UI.rfb_state === "normal" ? true : false;
 //
 //	    //Util.Debug(">> updateVisualState");
-//	    $D('noVNC_encrypt').disabled = connected;
-//	    $D('noVNC_true_color').disabled = connected;
+//	    WebUtil.D("noVNC_encrypt").disabled = connected;
+//	    WebUtil.D("noVNC_true_color").disabled = connected;
 //	    if (UI.rfb && UI.rfb.get_display() &&
 //	        UI.rfb.get_display().get_cursor_uri()) {
-//	        $D('noVNC_cursor').disabled = connected;
+//	        WebUtil.D("noVNC_cursor").disabled = connected;
 //	    } else {
-//	        UI.updateSetting('cursor', false);
-//	        $D('noVNC_cursor').disabled = true;
+//	        UI.updateSetting("cursor", false);
+//	        WebUtil.D("noVNC_cursor").disabled = true;
 //	    }
-//	    $D('noVNC_shared').disabled = connected;
-//	    $D('noVNC_connectTimeout').disabled = connected;
-//	    $D('noVNC_path').disabled = connected;
+//	    WebUtil.D("noVNC_shared").disabled = connected;
+//	    WebUtil.D("noVNC_connectTimeout").disabled = connected;
+//	    WebUtil.D("noVNC_path").disabled = connected;
 //
 //	    if (connected) {
 //	        UI.setViewClip();
 //	        UI.setMouseButton(1);
-//	        $D('showKeyboard').style.display = "inline";
-//	        $D('sendCtrlAltDelButton').style.display = "inline";
+//	        WebUtil.D("showKeyboard").style.display = "inline";
+//	        WebUtil.D("sendCtrlAltDelButton").style.display = "inline";
 //	    } else {
 //	        UI.setMouseButton();
-//	        $D('showKeyboard').style.display = "none";
-//	        $D('sendCtrlAltDelButton').style.display = "none";
+//	        WebUtil.D("showKeyboard").style.display = "none";
+//	        WebUtil.D("sendCtrlAltDelButton").style.display = "none";
 //	    }
 //	    // State change disables viewport dragging.
 //	    // It is enabled (toggled) by direct click on the button
 //	    UI.setViewDrag(false);
 //
 //	    switch (UI.rfb_state) {
-//	        case 'fatal':
-//	        case 'failed':
-//	        case 'loaded':
-//	        case 'disconnected':
-//	            $D('connectButton').style.display = "";
-//	            $D('disconnectButton').style.display = "none";
+//	        case "fatal":
+//	        case "failed":
+//	        case "loaded":
+//	        case "disconnected":
+//	            WebUtil.D("connectButton").style.display = "";
+//	            WebUtil.D("disconnectButton").style.display = "none";
 //	            break;
 //	        default:
-//	            $D('connectButton').style.display = "none";
-//	            $D('disconnectButton').style.display = "";
+//	            WebUtil.D("connectButton").style.display = "none";
+//	            WebUtil.D("disconnectButton").style.display = "";
 //	            break;
 //	    }
 //
@@ -464,7 +466,7 @@ public class UI {
 //
 //	clipReceive: function(rfb, text) {
 //	    Util.Debug(">> UI.clipReceive: " + text.substr(0,40) + "...");
-//	    $D('noVNC_clipboard_text').value = text;
+//	    WebUtil.D("noVNC_clipboard_text").value = text;
 //	    Util.Debug("<< UI.clipReceive");
 //	},
 //
@@ -478,18 +480,18 @@ public class UI {
 	    String host = ((InputElement)WebUtil.D("noVNC_host")).getValue();
 	    String port = ((InputElement)WebUtil.D("noVNC_port")).getValue();
 	    String password = ((InputElement)WebUtil.D("noVNC_password")).getValue();
-//	    path = $D('noVNC_path').value;
+//	    path = WebUtil.D("noVNC_path").value;
 	    String path = "";
 	    
 //	    if ((!host) || (!port)) {
 //	        throw("Must set host and port");
 //	    }
 //
-//	    UI.rfb.set_encrypt(UI.getSetting('encrypt'));
-//	    UI.rfb.set_true_color(UI.getSetting('true_color'));
-//	    UI.rfb.set_local_cursor(UI.getSetting('cursor'));
-//	    UI.rfb.set_shared(UI.getSetting('shared'));
-//	    UI.rfb.set_connectTimeout(UI.getSetting('connectTimeout'));
+//	    UI.rfb.set_encrypt(UI.getSetting("encrypt"));
+//	    UI.rfb.set_true_color(UI.getSetting("true_color"));
+//	    UI.rfb.set_local_cursor(UI.getSetting("cursor"));
+//	    UI.rfb.set_shared(UI.getSetting("shared"));
+//	    UI.rfb.set_connectTimeout(UI.getSetting("connectTimeout"));
 //
 	    rfb.connect(host, port, password, path);
 //	    //Close dialog.
@@ -501,7 +503,7 @@ public class UI {
 //	    UI.closeSettingsMenu();
 //	    UI.rfb.disconnect();
 //
-//	    $D('noVNC_logo').style.display = "block";
+//	    WebUtil.D("noVNC_logo").style.display = "block";
 //	    UI.connSettingsOpen = false;
 //	    UI.toggleConnectPanel();
 //	},
@@ -517,12 +519,12 @@ public class UI {
 //	},
 //
 //	clipClear: function() {
-//	    $D('noVNC_clipboard_text').value = "";
+//	    WebUtil.D("noVNC_clipboard_text").value = "";
 //	    UI.rfb.clipboardPasteFrom("");
 //	},
 //
 //	clipSend: function() {
-//	    var text = $D('noVNC_clipboard_text').value;
+//	    var text = WebUtil.D("noVNC_clipboard_text").value;
 //	    Util.Debug(">> UI.clipSend: " + text.substr(0,40) + "...");
 //	    UI.rfb.clipboardPasteFrom(text);
 //	    Util.Debug("<< UI.clipSend");
@@ -541,25 +543,25 @@ public class UI {
 //
 //	    cur_clip = display.get_viewport();
 //
-//	    if (typeof(clip) !== 'boolean') {
+//	    if (typeof(clip) !== "boolean") {
 //	        // Use current setting
-//	        clip = UI.getSetting('clip');
+//	        clip = UI.getSetting("clip");
 //	    }
 //
 //	    if (clip && !cur_clip) {
 //	        // Turn clipping on
-//	        UI.updateSetting('clip', true);
+//	        UI.updateSetting("clip", true);
 //	    } else if (!clip && cur_clip) {
 //	        // Turn clipping off
-//	        UI.updateSetting('clip', false);
+//	        UI.updateSetting("clip", false);
 //	        display.set_viewport(false);
-//	        $D('noVNC_canvas').style.position = 'static';
+//	        WebUtil.D("noVNC_canvas").style.position = "static";
 //	        display.viewportChange();
 //	    }
-//	    if (UI.getSetting('clip')) {
+//	    if (UI.getSetting("clip")) {
 //	        // If clipping, update clipping settings
-//	        $D('noVNC_canvas').style.position = 'absolute';
-//	        pos = Util.getPosition($D('noVNC_canvas'));
+//	        WebUtil.D("noVNC_canvas").style.position = "absolute";
+//	        pos = Util.getPosition(WebUtil.D("noVNC_canvas"));
 //	        new_w = window.innerWidth - pos.x;
 //	        new_h = window.innerHeight - pos.y;
 //	        display.set_viewport(true);
@@ -569,10 +571,10 @@ public class UI {
 //
 //	// Toggle/set/unset the viewport drag/move button
 //	setViewDrag: function(drag) {
-//	    var vmb = $D('noVNC_view_drag_button');
+//	    var vmb = WebUtil.D("noVNC_view_drag_button");
 //	    if (!UI.rfb) { return; }
 //
-//	    if (UI.rfb_state === 'normal' &&
+//	    if (UI.rfb_state === "normal" &&
 //	        UI.rfb.get_display().get_viewport()) {
 //	        vmb.style.display = "inline";
 //	    } else {
@@ -595,18 +597,18 @@ public class UI {
 //	// On touch devices, show the OS keyboard
 //	showKeyboard: function() {
 //	    if(UI.keyboardVisible == false) {
-//	        $D('keyboardinput').focus();
+//	        WebUtil.D("keyboardinput").focus();
 //	        UI.keyboardVisible = true;
-//	        $D('showKeyboard').className = "noVNC_status_button_selected";
+//	        WebUtil.D("showKeyboard").className = "noVNC_status_button_selected";
 //	    } else if(UI.keyboardVisible == true) {
-//	        $D('keyboardinput').blur();
-//	        $D('showKeyboard').className = "noVNC_status_button";
+//	        WebUtil.D("keyboardinput").blur();
+//	        WebUtil.D("showKeyboard").className = "noVNC_status_button";
 //	        UI.keyboardVisible = false;
 //	    }
 //	},
 //
 //	keyInputBlur: function() {
-//	    $D('showKeyboard').className = "noVNC_status_button";
+//	    WebUtil.D("showKeyboard").className = "noVNC_status_button";
 //	    //Weird bug in iOS if you change keyboardVisible
 //	    //here it does not actually occur so next time
 //	    //you click keyboard icon it doesnt work.
@@ -643,11 +645,11 @@ public class UI {
 	}
 
 //	setBarPosition: function() {
-//	    $D('noVNC-control-bar').style.top = (window.pageYOffset) + 'px';
-//	    $D('noVNC_mobile_buttons').style.left = (window.pageXOffset) + 'px';
+//	    WebUtil.D("noVNC-control-bar").style.top = (window.pageYOffset) + "px";
+//	    WebUtil.D("noVNC_mobile_buttons").style.left = (window.pageXOffset) + "px";
 //
-//	    var vncwidth = $D('noVNC_screen').style.offsetWidth;
-//	    $D('noVNC-control-bar').style.width = vncwidth + 'px';
+//	    var vncwidth = WebUtil.D("noVNC_screen").style.offsetWidth;
+//	    WebUtil.D("noVNC-control-bar").style.width = vncwidth + "px";
 //	}
 //
 //	};
