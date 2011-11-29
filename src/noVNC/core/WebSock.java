@@ -53,7 +53,7 @@ public class WebSock {
 //
 
 //	var api = {},         // Public API
-	WebSocket websocket = null; // WebSocket object
+	private WebSocket websocket = null; // WebSocket object
     byte[] rQ = new byte[] {};          // Receive queue
     int rQi = 0;          // Receive queue index
     int rQmax = 10000;    // Max receive queue size before compacting
@@ -173,14 +173,14 @@ public class WebSock {
 	    }
 	}
 	public int rQshift16() {
-	    return (rQ[rQi++] <<  8) +
-	           (rQ[rQi++]      );
+		int ret = JSUtils.byte16AsInt(rQ, rQi);
+		rQi+=2;
+		return ret;
 	}
 	public int rQshift32() {
-	    return (rQ[rQi++] << 24) +
-	           (rQ[rQi++] << 16) +
-	           (rQ[rQi++] <<  8) +
-	           (rQ[rQi++]      );
+		int ret = JSUtils.byte32AsInt(rQ, rQi);
+		rQi+=4;
+		return ret;
 	}
 	public String rQshiftStr(int len) {
 	    byte[] arr = jsSlice(rQ, rQi, rQi + len);
@@ -288,7 +288,7 @@ public class WebSock {
 	            eventHandlers.onMessage(e);
 //	            // Compact the receive queue
 	            if (rQ.length > rQmax) {
-	                //Util.Debug("Compacting receive queue");
+	                Util.Debug("*** Compacting receive queue");
 	                rQ = jsSlice(rQ, rQi);
 	                rQi = 0;
 	            }
@@ -350,7 +350,12 @@ public class WebSock {
 	    websocket.hook(new WebSocketHandler() {
 	    	@Override
 	    	public void onMessage(MessageEvent event) {
-	    		recv_message(event);
+	    		try {
+	    			recv_message(event);
+	    		} catch (Throwable t) {
+	    			System.err.println("Unexpected Exception");
+	    			t.printStackTrace(System.err);
+	    		}
 	    	}
 			@Override
 			public void onOpen(NativeEvent e) {
