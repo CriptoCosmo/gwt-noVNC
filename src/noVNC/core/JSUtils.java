@@ -50,4 +50,19 @@ public class JSUtils {
 				(byte) ((in >>>  0) & 0xFF),
 		};
 	}
+	
+	public static int b2i(byte b) {
+		return (b & 0xff);
+	}
+	public static int byte16AsInt(byte[] b, int ndx) {
+		return ((b[ndx] & 0xff) << 8) + 
+				(b[ndx+1] & 0xff);
+	}
+
+	public static int byte32AsInt(byte[] b, int ndx) {
+		return  ((b[ndx  ] & 0xff) << 24) +
+				((b[ndx+1] & 0xff) << 16) +
+				((b[ndx+2] & 0xff) << 8) + 
+				 (b[ndx+3] & 0xff);
+	}
 }
