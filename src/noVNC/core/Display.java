@@ -488,10 +488,10 @@ public class Display {
 	        byte green = rgb[1];
 	        byte blue = rgb[2];
 	        for (int i = 0; i < (width * height * 4); i+=4) {
-	            data.set(i    , red);
-	            data.set(i + 1, green);
-	            data.set(i + 2, blue);
-	            data.set(i + 3, 255);
+	            data_set(data, i    , red);
+	            data_set(data, i + 1, green);
+	            data_set(data, i + 2, blue);
+	            data_set(data, i + 3, 255);
 	        }
 //	    } else {
 //	        that.fillRect(x, y, width, height, color);
@@ -518,10 +518,10 @@ public class Display {
 	        for (int j = y; j < yend; j += 1) {
 	            for (int i = x; i < xend; i += 1) {
 	                int p = (i + (j * width) ) * 4;
-	                data.set(p    , red);
-	                data.set(p + 1, green);
-	                data.set(p + 2, blue);
-	                data.set(p + 3, 255);
+	                data_set(data, p    , red);
+	                data_set(data, p + 1, green);
+	                data_set(data, p + 2, blue);
+	                data_set(data, p + 3, 255);
 	            }   
 	        } 
 //	    } else {
@@ -549,13 +549,24 @@ public class Display {
 	    ImageData img = c_ctx.createImageData(width, height);
 	    CanvasPixelArray data = img.getData();
 	    for (int i=0, j=offset; i < (width * height * 4); i=i+4, j=j+4) {
-	        data.set(i    , arr[j    ]);
-	        data.set(i + 1, arr[j + 1]);
-	        data.set(i + 2, arr[j + 2]);
-	        data.set(i + 3, 255); // Set Alpha
+	        data_set(data, i    , arr[j    ]);
+	        data_set(data, i + 1, arr[j + 1]);
+	        data_set(data, i + 2, arr[j + 2]);
+	        data_set(data, i + 3, 255); // Set Alpha
 	    }
 	    c_ctx.putImageData(img, x - v.x, y - v.y);
 	};
+	private void data_set(CanvasPixelArray data, int i, byte v) {
+//		if (i < 0) {
+//			System.err.println("ERROR: i<0;");
+//			return;
+//		}
+//		data.set(i, JSUtils.b2i(v));
+	}
+	private void data_set(CanvasPixelArray data, int i, int v) {
+//		if (i < 0) { System.err.println("ERROR: i<0;");return;} 
+//		data.set(i, v);
+	}
 
 	private void cmapImageData (int x, int y, int width, int height, byte[] arr, int offset) {
 //	    var img, i, j, data;
@@ -563,10 +574,10 @@ public class Display {
 	    CanvasPixelArray data = img.getData();
 	    for (int i=0, j=offset; i < (width * height * 4); i+=4, j+=1) {
 	        byte[] rgb = Defaults.colourMap[arr[j]];
-	        data.set(i    , rgb[0]);
-	        data.set(i + 1, rgb[1]);
-	        data.set(i + 2, rgb[2]);
-	        data.set(i + 3, 255); // Set Alpha
+	        data_set(data, i    , rgb[0]);
+	        data_set(data, i + 1, rgb[1]);
+	        data_set(data, i + 2, rgb[2]);
+	        data_set(data, i + 3, 255); // Set Alpha
 	    }
 	    c_ctx.putImageData(img, x - viewport.x, y - viewport.y);
 	};
