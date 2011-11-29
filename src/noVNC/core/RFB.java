@@ -13,7 +13,6 @@ import noVNC.core.WebSocket.MessageEvent;
 import noVNC.utils.Point;
 import noVNC.utils.Rect;
 
-import com.google.gwt.canvas.dom.client.Context2d;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.user.client.Timer;
 
@@ -80,8 +79,8 @@ public class RFB {
 			public boolean run(RFB rfb);
 		}
 
-		private static Map<String, EncHandler> encHandlers = new HashMap<String, EncHandler>();
-//	    private String[] encNames      = new String[encodings.length]; 
+		private static Map<String, EncHandler> encHandlers = new HashMap<String, EncHandler>(encodings.length*2);
+	    private static Map<Integer, String>  encNames      = new HashMap<Integer, String>(encodings.length*2); 
 //	    private int[][] encStats       = new int[encodings.length][2];     // [rectCnt, rectCntTot]
 
 	    private WebSock ws		= null;   // Websock object
@@ -154,7 +153,21 @@ public class RFB {
 	    byte[] mouse_arr        = new byte[] {};
 	    private boolean viewportDragging = false;
 	    Point viewportDragPos = new Point();
-//
+	    
+		public interface RFBHandler {
+			public void onUpdateState(RFB rfb, String state, String oldState, String statusMsg);	    
+		}
+		
+		private RFBHandler rfbHandler = new RFBHandler() {
+			@Override
+			public void onUpdateState(RFB rfb, String state, String oldState, String statusMsg) {
+				Util.Debug(">>> State changed: " + oldState + " --> " + state + " : " + statusMsg);
+			}
+		};
+		public void hook(RFBHandler _rh) {
+			rfbHandler = _rh;
+		}
+
 //	// Configuration attributes
 //	Util.conf_defaults(conf, that, defaults, [
 //	    ["target",             "wo", "dom", null, "VNC display rendering Canvas object"],
@@ -230,7 +243,7 @@ public class RFB {
 	    // Create lookup tables based encoding number
 	    for (int i=0; i < encodings.length; i+=1) {
 	        encHandlers.put(Integer.toString(encodings[i].val), encHandlers.get(encodings[i].key));
-//	        encNames[encodings[i].val] = encodings[i].key;
+	        encNames.put(encodings[i].val, encodings[i].key);
 //	        encStats[encodings[i].val][0] = 0;
 //	        encStats[encodings[i].val][1] = 0;
 	    }
@@ -541,16 +554,12 @@ public class RFB {
 
 	    if (oldstate.equals("failed") && state.equals("disconnected")) {
 	        // Leave the failed message
-	        onUpdateState(this, state, oldstate, null);
+	    	rfbHandler.onUpdateState(this, state, oldstate, null);
 	    } else {
-	        onUpdateState(this, state, oldstate, statusMsg);
+	    	rfbHandler.onUpdateState(this, state, oldstate, statusMsg);
 	    }
 	};
 	
-	// UI will override
-	public void onUpdateState(RFB rfb, String state, String oldState, String status) {
-		Util.Debug(">>> State changed: " + oldState + " --> " + state + " : " + status);
-	}
 
 	private boolean fail(String msg) {
 	    updateState("failed", msg);
@@ -1035,11 +1044,11 @@ public class RFB {
 	            /* New FramebufferUpdate */
 
 	            byte[] hdr = ws.rQshiftBytes(12);
-	            FBU.x      = (hdr[0] << 8) + hdr[1];
-	            FBU.y      = (hdr[2] << 8) + hdr[3];
-	            FBU.width  = (hdr[4] << 8) + hdr[5];
-	            FBU.height = (hdr[6] << 8) + hdr[7];
-	            FBU.encoding = Integer.parseInt("" + (hdr[8] << 24) + (hdr[9] << 16) + (hdr[10] << 8) +  hdr[11], 10);
+	            FBU.x      = JSUtils.byte16AsInt(hdr, 0);
+	            FBU.y      = JSUtils.byte16AsInt(hdr, 2);
+	            FBU.width  = JSUtils.byte16AsInt(hdr, 4);
+	            FBU.height = JSUtils.byte16AsInt(hdr, 6);
+	            FBU.encoding = JSUtils.byte32AsInt(hdr, 8);
 	            
 
 //	            conf.onFBUReceive(that,
@@ -1048,22 +1057,21 @@ public class RFB {
 //	                     "encoding": FBU.encoding,
 //	                     "encodingName": encNames[FBU.encoding]});
 //
-//	            if (encNames[FBU.encoding]) {
-//	                // Debug:
-//	                /*
-//	                var msg =  "FramebufferUpdate rects:" + FBU.rects;
-//	                msg += " x: " + FBU.x + " y: " + FBU.y;
-//	                msg += " width: " + FBU.width + " height: " + FBU.height;
-//	                msg += " encoding:" + FBU.encoding;
-//	                msg += "(" + encNames[FBU.encoding] + ")";
-//	                msg += ", ws.rQlen(): " + ws.rQlen();
-//	                Util.Debug(msg);
-//	                */
-//	            } else {
-//	                fail("Disconnected: unsupported encoding " +
-//	                    FBU.encoding);
-//	                return false;
-//	            }
+	            if (encNames.containsKey(FBU.encoding)) {
+	                // Debug:
+	                ///*
+	                String msg =  "FramebufferUpdate rects:" + FBU.rects;
+	                msg += " x: " + FBU.x + " y: " + FBU.y;
+	                msg += " width: " + FBU.width + " height: " + FBU.height;
+	                msg += " encoding:" + FBU.encoding;
+	                msg += "(" + encNames.get(FBU.encoding) + ")";
+	                msg += ", ws.rQlen(): " + ws.rQlen();
+	                Util.Debug(msg);
+	                //*/
+	            } else {
+	                fail("Disconnected: unsupported encoding " + FBU.encoding);
+	                return false;
+	            }
 	        }
 
 	        timing.last_fbu = (new Date()).getTime();
@@ -1136,8 +1144,13 @@ public class RFB {
 			@Override
 			public boolean run(RFB rfb) {
 			    //Util.Debug(">> display_raw (" + ws.rQlen() + " bytes)");
+				if (rfb.FBU.width == 0) {
+			        rfb.FBU.rects -= 1;
+			        rfb.FBU.bytes = 0;
+					return true;
+				}
 				
-			    int cur_y, cur_height;
+			    int cur_y;
 		
 			    if (rfb.FBU.lines == 0) {
 			    	rfb.FBU.lines = rfb.FBU.height;
@@ -1145,8 +1158,9 @@ public class RFB {
 			    rfb.FBU.bytes = rfb.FBU.width * rfb.fb_Bpp; // At least a line
 			    if (rfb.ws.rQwait("RAW", rfb.FBU.bytes)) { return false; }
 			    cur_y = rfb.FBU.y + (rfb.FBU.height - rfb.FBU.lines);
-			    cur_height = Math.min(rfb.FBU.lines,
+			    int cur_height = Math.min(rfb.FBU.lines,
 			                          (int) Math.floor(rfb.ws.rQlen()/(rfb.FBU.width * rfb.fb_Bpp)));
+
 			    rfb.display.blitImage(rfb.FBU.x, cur_y, rfb.FBU.width, cur_height, rfb.ws.get_rQ(), rfb.ws.get_rQi());
 			    rfb.ws.rQshiftBytes(rfb.FBU.width * cur_height * rfb.fb_Bpp);
 			    rfb.FBU.lines -= cur_height;
@@ -1293,10 +1307,10 @@ public class RFB {
 			                /* Weird: ignore blanks after RAW */
 			                Util.Debug("     Ignoring blank after RAW");
 			            } else {
-			                rfb.display.fillRect(x, y, w, h, rfb.FBU.background);
+//			                rfb.display.fillRect(x, y, w, h, rfb.FBU.background);
 			            }
 			        } else if ((rfb.FBU.subencoding & 0x01) != 0) { // Raw
-			            rfb.display.blitImage(x, y, w, h, rfb.ws.rQ, rQi);
+//			            rfb.display.blitImage(x, y, w, h, rfb.ws.rQ, rQi);
 			            rQi += rfb.FBU.bytes - 1;
 			        } else {
 			            if ((rfb.FBU.subencoding & 0x02)!=0) { // Background
@@ -1308,7 +1322,7 @@ public class RFB {
 			                rQi += rfb.fb_Bpp;
 			            }
 		
-			            rfb.display.startTile(x, y, w, h, rfb.FBU.background);
+//			            rfb.display.startTile(x, y, w, h, rfb.FBU.background);
 			            if ((rfb.FBU.subencoding & 0x08) != 0) { // AnySubrects
 			                byte subrects = rfb.ws.rQ[rQi];
 			                rQi += 1;
@@ -1320,20 +1334,20 @@ public class RFB {
 			                    } else {
 			                        color = rfb.FBU.foreground;
 			                    }
-								byte xy = rfb.ws.rQ[rQi];
+								int xy = JSUtils.b2i(rfb.ws.rQ[rQi]);
 			                    rQi += 1;
 			                    int sx = (xy >> 4);
 			                    int sy = (xy & 0x0f);
 		//
-			                    byte wh = rfb.ws.rQ[rQi];
+			                    int wh = JSUtils.b2i(rfb.ws.rQ[rQi]);
 			                    rQi += 1;
 			                    int sw = (wh >> 4)   + 1;
 			                    int sh = (wh & 0x0f) + 1;
 		
-			                    rfb.display.subTile(sx, sy, sw, sh, color);
+//			                    rfb.display.subTile(sx, sy, sw, sh, color);
 			                }
 			            }
-			            rfb.display.finishTile();
+//			            rfb.display.finishTile();
 			        }
 			        rfb.ws.set_rQi(rQi);
 			        rfb.FBU.lastsubencoding = rfb.FBU.subencoding;
@@ -1453,7 +1467,7 @@ public class RFB {
 //
 	private void scan_tight_imgQ() {
 //	    var data, imgQ, ctx;
-	    Context2d ctx = display.get_context();
+//	    Context2d ctx = display.get_context();
 	    if (rfb_state.equals("normal")) {
 	        byte[] imgQ = FBU.imgQ;
 	        while ((imgQ.length > 0) /*&& (imgQ[0].img.complete)*/) {
