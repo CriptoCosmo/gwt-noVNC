@@ -27,11 +27,22 @@ public final class WebSocket extends JavaScriptObject {
 	protected WebSocket() {}
 
 	public static native WebSocket create(String url) /*-{
-		return new $wnd.WebSocket(url);
+		if ($wnd.WebSocket)
+			return new $wnd.WebSocket(url);
+		if ($wnd.MozWebSocket)
+			return new $wnd.MozWebSocket(url);
+			
+		return null;
 	}-*/;
 	
 	public static native WebSocket create(String url, String protocol) /*-{
-		return new $wnd.WebSocket(url, protocol);
+		if ($wnd.WebSocket)
+			return new $wnd.WebSocket(url, protocol);
+		if ($wnd.MozWebSocket)
+			return new $wnd.MozWebSocket(url, protocol);
+		
+		return null;		
+			
     }-*/;
 	
 	public native void hook(WebSocketHandler handler) /*-{
