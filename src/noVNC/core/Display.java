@@ -207,7 +207,7 @@ public class Display {
 	    } else {
 	        rgb = Defaults.colourMap[color[0]];
 	    }
-	    String newStyle = "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
+	    String newStyle = "rgb(" + JSUtils.b2i(rgb[0]) + "," + JSUtils.b2i(rgb[1]) + "," + JSUtils.b2i(rgb[2]) + ")";
 	    if (newStyle != c_prevStyle) {
 	        c_ctx.setFillStyle(newStyle);
 	        c_prevStyle = newStyle;
@@ -557,15 +557,12 @@ public class Display {
 	    c_ctx.putImageData(img, x - v.x, y - v.y);
 	};
 	private void data_set(CanvasPixelArray data, int i, byte v) {
-//		if (i < 0) {
-//			System.err.println("ERROR: i<0;");
-//			return;
-//		}
-//		data.set(i, JSUtils.b2i(v));
+		if (i < 0) {System.err.println("ERROR: i<0;"); return;}
+		data.set(i, JSUtils.b2i(v));
 	}
 	private void data_set(CanvasPixelArray data, int i, int v) {
-//		if (i < 0) { System.err.println("ERROR: i<0;");return;} 
-//		data.set(i, v);
+		if (i < 0) {System.err.println("ERROR: i<0;");return;} 
+		data.set(i, v);
 	}
 
 	private void cmapImageData (int x, int y, int width, int height, byte[] arr, int offset) {
