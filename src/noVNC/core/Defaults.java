@@ -28,6 +28,8 @@ public class Defaults {
 	
 	public static boolean viewportDrag = false;
 	public static boolean viewport = false;				// Use a viewport set with Display.viewportChange(), i.e to full display region
+
+	public static boolean prefer_js = false;
 	
 	static {
 		// colourMap 

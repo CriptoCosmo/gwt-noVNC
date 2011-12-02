@@ -467,8 +467,78 @@ public class Display {
 	};
 
 
+	public native void startTile(int x, int y, int width, int height, byte[] color)/*-{
+		 var data, rgb, red, green, blue, i;
+		    this.@noVNC.core.Display::tile_x = x;
+		    this.@noVNC.core.Display::tile_y = y;
+		    if ((width === 16) && (height === 16)) {
+		        this.@noVNC.core.Display::tile = this.@noVNC.core.Display::tile16x16;
+		    } else {
+		        this.@noVNC.core.Display::tile =  this.@noVNC.core.Display::c_ctx.createImageData(width, height);
+		    }
+		    data = this.@noVNC.core.Display::tile.data;
+		    
+		    if (@noVNC.core.Defaults::prefer_js) {
+		        if (@noVNC.core.Defaults::true_color) {
+		            rgb = color;
+		        } else {
+		            rgb = @noVNC.core.Defaults::colourMap[color[0]];
+		        }
+		        red = rgb[0];
+		        green = rgb[1];
+		        blue = rgb[2];
+		        for (i = 0; i < (width * height * 4); i+=4) {
+		            data[i    ] = red;
+		            data[i + 1] = green;
+		            data[i + 2] = blue;
+		            data[i + 3] = 255;
+		        }
+		    } else {
+		    	this.@noVNC.core.Display::fillRect(IIII[B)(x, y, width, height, color);
+		        //that.fillRect(x, y, width, height, color);
+		    }
+	}-*/;
+	
+	public native void subTile(int x, int y, int w, int h, byte[] color)/*-{
+		var data, p, rgb, red, green, blue, width, j, i, xend, yend;
+	    if (@noVNC.core.Defaults::prefer_js) {
+	        data = this.@noVNC.core.Display::tile.data;
+	        width = this.@noVNC.core.Display::tile.width; 
+	        if (@noVNC.core.Defaults::true_color) {
+	            rgb = color;
+	        } else {
+	            rgb = @noVNC.core.Defaults::colourMap[color[0]];
+	        }
+	        red = rgb[0];
+	        green = rgb[1];
+	        blue = rgb[2];
+	        xend = x + w;
+	        yend = y + h;
+	        for (j = y; j < yend; j += 1) {
+	            for (i = x; i < xend; i += 1) {
+	                p = (i + (j * width) ) * 4;
+	                data[p    ] = red;
+	                data[p + 1] = green;
+	                data[p + 2] = blue;
+	                data[p + 3] = 255;
+	            }   
+	        } 
+	    } else {
+	    	this.@noVNC.core.Display::fillRect(IIII[B)(this.@noVNC.core.Display::tile_x + x, this.@noVNC.core.Display::tile_y + y, w, h, color);
+	        //that.fillRect(tile_x + x, tile_y + y, w, h, color);
+	    }
+	}-*/;
+	
+	public native void finishTile()/*-{
+		if (@noVNC.core.Defaults::prefer_js) {
+				this.@noVNC.core.Display::c_ctx.putImageData(this.@noVNC.core.Display::tile, 
+				this.@noVNC.core.Display::tile_x - this.@noVNC.core.Display::viewport.@noVNC.utils.Rect::x, 
+				this.@noVNC.core.Display::tile_y - this.@noVNC.core.Display::viewport.@noVNC.utils.Rect::y);
+		}
+	}-*/;
+	
 	// Start updating a tile
-	public void startTile(int x, int y, int width, int height, byte[] color) {
+	public void startTileXXX(int x, int y, int width, int height, byte[] color) {
 	    tile_x = x;
 	    tile_y = y;
 	    if ((width == 16) && (height == 16)) {
@@ -478,7 +548,7 @@ public class Display {
 	    }
 	    CanvasPixelArray data = tile.getData();
 	    byte[] rgb;
-//	    if (conf.prefer_js) {
+	    if (Defaults.prefer_js) {
 	        if (Defaults.true_color) {
 	            rgb = color;
 	        } else {
@@ -493,16 +563,16 @@ public class Display {
 	            data_set(data, i + 2, blue);
 	            data_set(data, i + 3, 255);
 	        }
-//	    } else {
-//	        that.fillRect(x, y, width, height, color);
-//	    }
+	    } else {
+	        fillRect(x, y, width, height, color);
+	    }
 	};
 
 	// Update sub-rectangle of the current tile
-	public void subTile(int x, int y, int w, int h, byte[] color) {
+	public void subTileXXX(int x, int y, int w, int h, byte[] color) {
 //	    var data, p, rgb, red, green, blue, width, j, i, xend, yend;
 		byte[] rgb;
-//	    if (conf.prefer_js) {
+	    if (Defaults.prefer_js) {
 	        CanvasPixelArray data = tile.getData();
 	        int width = tile.getWidth();
 	        if (Defaults.true_color) {
@@ -524,20 +594,39 @@ public class Display {
 	                data_set(data, p + 3, 255);
 	            }   
 	        } 
-//	    } else {
-//	        that.fillRect(tile_x + x, tile_y + y, w, h, color);
-//	    }
+	    } else {
+	       fillRect(tile_x + x, tile_y + y, w, h, color);
+	    }
 	};
 
 	// Draw the current tile to the screen
-	public void finishTile() {
-//	    if (conf.prefer_js) {
+	public void finishTileXXX() {
+	    if (Defaults.prefer_js) {
 	        c_ctx.putImageData(tile, tile_x - viewport.x, tile_y - viewport.y);
-//	    }
+	    }
 //	    // else: No-op, if not prefer_js then already done by setSubTile
 	};
 
-	private void rgbxImageData(int x, int y, int width, int height, byte[] arr, int offset) {
+	private native void rgbxImageData(int x, int y, int width, int height, byte[] arr, int offset)/*-{
+	    var img, i, j, data;
+	    var v = this.@noVNC.core.Display::viewport;
+//	    if ((x - v.x >= v.w) || (y - v.y >= v.h) ||
+//	        (x - v.x + width < 0) || (y - v.y + height < 0)) {
+//	        // Skipping because outside of viewport
+//	        return;
+//	    }
+	    img = this.@noVNC.core.Display::c_ctx.createImageData(width, height);
+	    data = img.data;
+	    for (i=0, j=offset; i < (width * height * 4); i=i+4, j=j+4) {
+	        data[i    ] = arr[j    ];
+	        data[i + 1] = arr[j + 1];
+	        data[i + 2] = arr[j + 2];
+	        data[i + 3] = 255; // Set Alpha
+	    }
+	    this.@noVNC.core.Display::c_ctx.putImageData(img, x - v.@noVNC.utils.Rect::x, y - v.@noVNC.utils.Rect::y);
+	}-*/;
+	
+	private void rgbxImageDataXXX(int x, int y, int width, int height, byte[] arr, int offset) {
 		Rect v = viewport;
 	    /*
 	    if ((x - v.x >= v.w) || (y - v.y >= v.h) ||

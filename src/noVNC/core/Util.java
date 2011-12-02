@@ -184,7 +184,7 @@ public class Util {
 	    int x = 0, y = 0;
 	    while (obj.getOffsetParent() != null) {
 	    	x += obj.getOffsetLeft();
-            y += obj.getOffsetHeight();
+            y += obj.getOffsetTop();
             obj = obj.getOffsetParent();
 	    }
 	    return new Point(x, y);
@@ -194,36 +194,36 @@ public class Util {
 	// Get mouse event position in DOM element
 	public static Point getEventPosition(NativeEvent e, Element obj, float scale) {
 		
+		Point docPt = new Point();
+		getDocPosition(e, docPt);
+		
 		//	    var evt, docX, docY, pos;
-		NativeEvent evt = null;
-		int docX = 0, docY = 0;
-//		Point pos;
-		
-//	    //if (!e) evt = window.event;
-//	    evt = (e ? e : window.event);
-		if (e != null)	{
-			evt = e;
-		} else {
-			//check for default event
-		}
-//	    evt = (evt.changedTouches ? evt.changedTouches[0] : evt.touches ? evt.touches[0] : evt);
-		
-	    if (evt.getScreenX() != 0 || evt.getScreenY() != 0) {
-	        docX = evt.getScreenX();
-	        docY = evt.getScreenY();
-	    } else if (evt.getClientX() != 0 || evt.getClientY() != 0) {
-	        docX = evt.getClientX() + 
-	        //Document.get().getBody().getScrollLeft() + 
-	        Document.get().getScrollLeft();  
-	        docY = evt.getClientY() + 
-	        //Document.get().getBody().getScrollTop() + 
-	        Document.get().getScrollTop();
-	    }
 	    Point pos = Util.getPosition(obj);
 	    if (scale == 0.0)   scale = 1;
-	    return new Point((int)((docX - pos.x) / scale), (int)((docY - pos.y) / scale));
+	    return new Point((int)((docPt.x - pos.x) / scale), (int)((docPt.y - pos.y) / scale));
 	}
 	
+	private static native void getDocPosition(NativeEvent e, Point docPt)/*-{
+		var evt;
+    //if (!e) evt = window.event;
+	    evt = (e ? e : window.event);
+	    evt = (evt.changedTouches ? evt.changedTouches[0] : evt.touches ? evt.touches[0] : evt);
+	    if (evt.pageX || evt.pageY) {
+	        docPt.@noVNC.utils.Point::x = evt.pageX;
+	        docPt.@noVNC.utils.Point::y = evt.pageY;
+	    } else if (evt.clientX || evt.clientY) {
+	        docPt.@noVNC.utils.Point::x = evt.clientX + document.body.scrollLeft +
+	            document.documentElement.scrollLeft;
+	        docPt.@noVNC.utils.Point::y = evt.clientY + document.body.scrollTop +
+	            document.documentElement.scrollTop;
+	    }
+	}-*/;
+
+	private static native void getDoc(Point p)/*-{
+		p.@noVNC.utils.Point::x = 5;
+		p.@noVNC.utils.Point::y = 5;
+	}-*/;
+
 	public interface NativeEventHandler {
 		public boolean run(NativeEvent e);
 	}

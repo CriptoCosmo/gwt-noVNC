@@ -654,6 +654,7 @@ public class RFB {
 	}
 	
 		public void mouseButton (int x, int y, boolean down, int bmask) {
+			Util.Debug(">> mouseClick " + x + "," + y);
 			 if (down) {
 			        mouse_buttonMask |= bmask;
 			    } else {
@@ -677,7 +678,7 @@ public class RFB {
 		}
 
 		public void	mouseMove (int x, int y) {
-//	    //Util.Debug(">> mouseMove " + x + "," + y);
+	    Util.Debug(">> mouseMove " + x + "," + y);
 	    int deltaX, deltaY;
 
 	    if (viewportDragging) {
@@ -1161,7 +1162,13 @@ public class RFB {
 			    int cur_height = Math.min(rfb.FBU.lines,
 			                          (int) Math.floor(rfb.ws.rQlen()/(rfb.FBU.width * rfb.fb_Bpp)));
 
+			    long start = System.currentTimeMillis();
+			    System.err.println("Start image: " + start);
 			    rfb.display.blitImage(rfb.FBU.x, cur_y, rfb.FBU.width, cur_height, rfb.ws.get_rQ(), rfb.ws.get_rQi());
+			    long end = System.currentTimeMillis();
+			    System.err.println("End image: " + end + "\nTime(s): " + (end - start)/1000);
+			    
+			    
 			    rfb.ws.rQshiftBytes(rfb.FBU.width * cur_height * rfb.fb_Bpp);
 			    rfb.FBU.lines -= cur_height;
 		
@@ -1232,6 +1239,8 @@ public class RFB {
 			@Override
 			public boolean run(RFB rfb) {
 			    //Util.Debug(">> display_hextile");
+				long start = System.currentTimeMillis();
+				int subrects;
 //			    var subencoding, subrects, color, cur_tile,
 //			        tile_x, x, w, tile_y, y, h, xy, s, sx, sy, wh, sw, sh,
 //			        rQ = rfb.ws.get_rfb.rQ(), rQi = rfb.ws.get_rfb.rQi(); 
@@ -1254,7 +1263,7 @@ public class RFB {
 			            //Util.Debug("rfb.ws.rQslice(0,30):" + rfb.ws.rQslice(0,30));
 			            return false;
 			        }
-			        rfb.FBU.subrects = 0;
+			        subrects = 0;
 			        int cur_tile = rfb.FBU.total_tiles - rfb.FBU.tiles;
 			        int tile_x = cur_tile % rfb.FBU.tiles_x;
 			        int tile_y = (int) Math.floor(cur_tile / rfb.FBU.tiles_x);
@@ -1277,7 +1286,7 @@ public class RFB {
 			            if ((subencoding & 0x08) != 0) { // AnySubrects
 			                rfb.FBU.bytes += 1;   // Since we aren"t shifting it off
 			                if (rfb.ws.rQwait("hextile subrects header", rfb.FBU.bytes)) { return false; }
-			                byte subrects = rfb.ws.rQ[rQi + rfb.FBU.bytes-1]; // Peek
+			                subrects = JSUtils.b2i(rfb.ws.rQ[rQi + rfb.FBU.bytes-1]); // Peek
 			                if ((subencoding & 0x10) != 0) { // SubrectsColoured
 			                    rfb.FBU.bytes += subrects * (rfb.fb_Bpp + 2);
 			                } else {
@@ -1300,17 +1309,17 @@ public class RFB {
 			        if (rfb.ws.rQwait("hextile", rfb.FBU.bytes)) { return false; }
 		
 			        /* We know the encoding and have a whole tile */
-			        rfb.FBU.subencoding = rfb.ws.rQ[rQi];
+			        rfb.FBU.subencoding = JSUtils.b2i(rfb.ws.rQ[rQi]);
 			        rQi += 1;
 			        if (rfb.FBU.subencoding == 0) {
 			            if ((rfb.FBU.lastsubencoding & 0x01) != 0) {
 			                /* Weird: ignore blanks after RAW */
 			                Util.Debug("     Ignoring blank after RAW");
 			            } else {
-//			                rfb.display.fillRect(x, y, w, h, rfb.FBU.background);
+			                rfb.display.fillRect(x, y, w, h, rfb.FBU.background);
 			            }
 			        } else if ((rfb.FBU.subencoding & 0x01) != 0) { // Raw
-//			            rfb.display.blitImage(x, y, w, h, rfb.ws.rQ, rQi);
+			            rfb.display.blitImage(x, y, w, h, rfb.ws.rQ, rQi);
 			            rQi += rfb.FBU.bytes - 1;
 			        } else {
 			            if ((rfb.FBU.subencoding & 0x02)!=0) { // Background
@@ -1322,9 +1331,9 @@ public class RFB {
 			                rQi += rfb.fb_Bpp;
 			            }
 		
-//			            rfb.display.startTile(x, y, w, h, rfb.FBU.background);
+			            rfb.display.startTile(x, y, w, h, rfb.FBU.background);
 			            if ((rfb.FBU.subencoding & 0x08) != 0) { // AnySubrects
-			                byte subrects = rfb.ws.rQ[rQi];
+			                subrects = JSUtils.b2i(rfb.ws.rQ[rQi]);
 			                rQi += 1;
 			                for (int s = 0; s < subrects; s += 1) {
 			                    byte[] color;
@@ -1338,16 +1347,16 @@ public class RFB {
 			                    rQi += 1;
 			                    int sx = (xy >> 4);
 			                    int sy = (xy & 0x0f);
-		//
+		
 			                    int wh = JSUtils.b2i(rfb.ws.rQ[rQi]);
 			                    rQi += 1;
 			                    int sw = (wh >> 4)   + 1;
 			                    int sh = (wh & 0x0f) + 1;
 		
-//			                    rfb.display.subTile(sx, sy, sw, sh, color);
+			                    rfb.display.subTile(sx, sy, sw, sh, color);
 			                }
 			            }
-//			            rfb.display.finishTile();
+			            rfb.display.finishTile();
 			        }
 			        rfb.ws.set_rQi(rQi);
 			        rfb.FBU.lastsubencoding = rfb.FBU.subencoding;
@@ -1360,6 +1369,8 @@ public class RFB {
 			    }
 		
 			    //Util.Debug("<< display_hextile");
+			    long end = System.currentTimeMillis();
+			    System.err.println("\nTime(s): " + (end - start)/1000);
 			    return true;
 			}
 		});
@@ -1642,8 +1653,8 @@ public class RFB {
 	}
 
 	private byte[] pointerEvent(int x, int y) {
-	    //Util.Debug(">> pointerEvent, x,y: " + x + "," + y +
-	    //           " , mask: " + mouse_buttonMask);
+	    Util.Debug(">> pointerEvent, x,y: " + x + "," + y +
+	               " , mask: " + mouse_buttonMask);
 	    byte[] arr = new byte[] {
 	    		5,  // msg-type
 	    		mouse_buttonMask
