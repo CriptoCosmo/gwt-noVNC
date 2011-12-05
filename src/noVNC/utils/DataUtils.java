@@ -1,7 +1,9 @@
 package noVNC.utils;
 
+import java.io.PrintStream;
+
 public class DataUtils {
-	
+
 	public static final boolean receiving = true;
 	public static final boolean sending = false;
 
@@ -13,17 +15,9 @@ public class DataUtils {
 			System.err.print("Sending: ");
 		}
 		byte[] decodedBytes = decoded.getBytes();
+		print(System.err, decodedBytes);
 		
-		for (int i = 0; i<decodedBytes.length; i++) {
-			byte b = decodedBytes[i];
-			if(i != 0) System.err.print(",");
-			System.err.print(b);
-			if (i>=80) {
-				System.err.print(", " + decodedBytes.length + " bytes total");
-				raw = "Large Str - len: " + raw.length();
-				break;
-			}
-		}
+		if (decodedBytes.length>=80) raw = "Large Str - len: " + raw.length();
 
 		if (rcv) {
 			System.err.print(" <-- ");
@@ -31,6 +25,23 @@ public class DataUtils {
 			System.err.print(" --> ");
 		}
 		System.err.println("[" + raw + "]");
+	}
+
+	public static void print(PrintStream ps, byte[] b) {
+		print(ps, b, 0);
+	}
+	public static void print(PrintStream ps, byte[] b, int start) {
+		print(ps, b, start, b.length);
+	}
+	public static void print(PrintStream ps, byte[] b, int start, int stop) {
+		for (int i = start; i<stop; i++) {
+			if(i != start) ps.print(",");
+			ps.print(b[i]);
+			if (i-start>=80) {
+				ps.print(", " + stop + " bytes total");
+				return;
+			}
+		}
 	}
 
 	// for debugging data going from the server to the client
@@ -42,4 +53,6 @@ public class DataUtils {
 	public static void printCSData(boolean rcv, String decoded, String raw) {
 		printData(rcv, decoded, raw);
 	}
+
+	
 }
