@@ -236,6 +236,11 @@ public class WebSock {
 	    //Util.Debug(">> decode_message: " + data);
 	    /* base64 decode */
 		DataUtils.printCSData(DataUtils.receiving, new String(Base64.decode(data, 0)), data);
+		if (rQlen()==0) {
+			// we don't need to concat when everything has been read
+			rQ = new byte[] {};	
+			rQi = 0;
+		}
 		rQ = jsConcat(rQ, Base64.decode(data, 0));
 
 		//Util.Debug(">> decode_message, rQ: " + rQ);
