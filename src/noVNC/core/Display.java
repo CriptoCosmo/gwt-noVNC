@@ -208,8 +208,13 @@ public class Display {
 	        rgb = Defaults.colourMap[color[0]];
 	    }
 	    String newStyle = "rgb(" + JSUtils.b2i(rgb[0]) + "," + JSUtils.b2i(rgb[1]) + "," + JSUtils.b2i(rgb[2]) + ")";
-	    if (newStyle != c_prevStyle) {
+	    if (!newStyle.equals(c_prevStyle)) {
+	    	try {
 	        c_ctx.setFillStyle(newStyle);
+	    	} catch (Throwable t) {
+	    		System.err.println("Exception while setting style to: " + newStyle);
+	    		t.printStackTrace(System.err);
+	    	}
 	        c_prevStyle = newStyle;
 	    }
 	};
