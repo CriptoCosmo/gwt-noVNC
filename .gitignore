@@ -6,3 +6,4 @@ utils/rebind.so
 /.settings
 /gwt-unitCache
 /x-tomcat
+/.gwt
