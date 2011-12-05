@@ -628,7 +628,11 @@ public class RFB {
 	private class CheckEventsTimer extends Timer {
 		@Override
 		public void run() {
+			try {
 			checkEvents();
+			} catch (Throwable t) {
+				t.printStackTrace(System.err);
+			}
 		}
 	}
 
@@ -1058,16 +1062,23 @@ public class RFB {
 //	                     "encoding": FBU.encoding,
 //	                     "encodingName": encNames[FBU.encoding]});
 //
+	            String msg =  "FramebufferUpdate rects:" + FBU.rects;
+	            msg += " x: " + FBU.x + " y: " + FBU.y;
+	            msg += " width: " + FBU.width + " height: " + FBU.height;
+	            msg += " encoding:" + FBU.encoding;
+	            msg += "(" + encNames.get(FBU.encoding) + ")";
+	            msg += ", ws.rQlen(): " + ws.rQlen();
+	            Util.Debug(msg);
 	            if (encNames.containsKey(FBU.encoding)) {
 	                // Debug:
 	                ///*
-	                String msg =  "FramebufferUpdate rects:" + FBU.rects;
-	                msg += " x: " + FBU.x + " y: " + FBU.y;
-	                msg += " width: " + FBU.width + " height: " + FBU.height;
-	                msg += " encoding:" + FBU.encoding;
-	                msg += "(" + encNames.get(FBU.encoding) + ")";
-	                msg += ", ws.rQlen(): " + ws.rQlen();
-	                Util.Debug(msg);
+//	                String msg =  "FramebufferUpdate rects:" + FBU.rects;
+//	                msg += " x: " + FBU.x + " y: " + FBU.y;
+//	                msg += " width: " + FBU.width + " height: " + FBU.height;
+//	                msg += " encoding:" + FBU.encoding;
+//	                msg += "(" + encNames.get(FBU.encoding) + ")";
+//	                msg += ", ws.rQlen(): " + ws.rQlen();
+//	                Util.Debug(msg);
 	                //*/
 	            } else {
 	                fail("Disconnected: unsupported encoding " + FBU.encoding);
@@ -1079,7 +1090,7 @@ public class RFB {
 
 	        EncHandler handler = encHandlers.get("" + FBU.encoding + "");
 	        boolean ret = handler.run(this);
-
+	        
 	        now = (new Date()).getTime();
 	        timing.cur_fbu += (now - timing.last_fbu);
 
@@ -1247,8 +1258,8 @@ public class RFB {
 				int rQi =   rfb.ws.get_rQi();
 		
 			    if (rfb.FBU.tiles == 0) {
-			        rfb.FBU.tiles_x = (int) Math.ceil( rfb.FBU.width/16);
-			        rfb.FBU.tiles_y = (int) Math.ceil(rfb.FBU.height/16);
+			        rfb.FBU.tiles_x = (int) Math.ceil(1.0* rfb.FBU.width/16);
+			        rfb.FBU.tiles_y = (int) Math.ceil(1.0*rfb.FBU.height/16);
 			        rfb.FBU.total_tiles = rfb.FBU.tiles_x * rfb.FBU.tiles_y;
 			        rfb.FBU.tiles = rfb.FBU.total_tiles;
 			    }
@@ -1266,7 +1277,7 @@ public class RFB {
 			        subrects = 0;
 			        int cur_tile = rfb.FBU.total_tiles - rfb.FBU.tiles;
 			        int tile_x = cur_tile % rfb.FBU.tiles_x;
-			        int tile_y = (int) Math.floor(cur_tile / rfb.FBU.tiles_x);
+			        int tile_y = cur_tile / rfb.FBU.tiles_x; // java does floor by default
 			        int x = rfb.FBU.x + tile_x * 16;
 			        int y = rfb.FBU.y + tile_y * 16;
 			        int w = Math.min(16, (rfb.FBU.x + rfb.FBU.width) - x);
@@ -1370,7 +1381,7 @@ public class RFB {
 		
 			    //Util.Debug("<< display_hextile");
 			    long end = System.currentTimeMillis();
-			    System.err.println("\nTime(s): " + (end - start)/1000);
+			    System.err.println(">>> Time(ms): " + (end - start) + " buffer-remain: " + rfb.ws.rQlen());
 			    return true;
 			}
 		});
