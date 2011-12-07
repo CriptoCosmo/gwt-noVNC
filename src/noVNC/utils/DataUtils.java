@@ -2,6 +2,8 @@ package noVNC.utils;
 
 import java.io.PrintStream;
 
+import noVNC.core.Util;
+
 public class DataUtils {
 
 	public static final boolean receiving = true;
@@ -9,10 +11,13 @@ public class DataUtils {
 
 	public static void printData(boolean rcv, String decoded, String raw) { 
 		if (decoded.length() == 0) return;
+		String msg = "";
 		if (rcv) {
-			System.err.print("Receiving: ");
+			msg += "Receiving: ";
+//			System.err.print("Receiving: ");
 		} else {
-			System.err.print("Sending: ");
+			msg += "Sending: ";
+//			System.err.print("Sending: ");
 		}
 		byte[] decodedBytes = decoded.getBytes();
 		print(System.err, decodedBytes);
@@ -20,11 +25,19 @@ public class DataUtils {
 		if (decodedBytes.length>=80) raw = "Large Str - len: " + raw.length();
 
 		if (rcv) {
-			System.err.print(" <-- ");
+			msg += " <-- ";
+//			System.err.print(" <-- ");
 		} else {
-			System.err.print(" --> ");
+			msg += " --> ";
+//			System.err.print(" --> ");
 		}
-		System.err.println("[" + raw + "]");
+		msg += "[" + raw + "]";
+//		System.err.println("[" + raw + "]");
+		print(msg);
+	}
+	
+	private static void print(String msg) {
+		Util.Debug(msg);
 	}
 
 	public static void print(PrintStream ps, byte[] b) {
@@ -34,11 +47,14 @@ public class DataUtils {
 		print(ps, b, start, b.length);
 	}
 	public static void print(PrintStream ps, byte[] b, int start, int stop) {
+		String msg = "";
 		for (int i = start; i<stop; i++) {
-			if(i != start) ps.print(",");
-			ps.print(b[i]);
+			if(i != start) msg += ",";//ps.print(",");
+//			ps.print(b[i]);
+			msg += b[i];
 			if (i-start>=80) {
-				ps.print(", " + stop + " bytes total");
+				msg += ", " + stop + " bytes total";
+//				ps.print(", " + stop + " bytes total");
 				return;
 			}
 		}

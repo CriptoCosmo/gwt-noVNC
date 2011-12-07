@@ -65,4 +65,12 @@ public class JSUtils {
 				((b[ndx+2] & 0xff) << 8) + 
 				 (b[ndx+3] & 0xff);
 	}
+
+	public static int[] asIntArr(byte[] color) {
+		int[] intArr = new int[color.length];
+		for (int i = 0; i < color.length; i++) {
+			intArr[i] = b2i(color[i]);
+		}
+		return intArr;
+	}
 }

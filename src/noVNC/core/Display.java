@@ -472,7 +472,7 @@ public class Display {
 	};
 
 
-	public native void startTile(int x, int y, int width, int height, byte[] color)/*-{
+	public native void startTile(int x, int y, int width, int height, int[] color)/*-{
 		 var data, rgb, red, green, blue, i;
 		    this.@noVNC.core.Display::tile_x = x;
 		    this.@noVNC.core.Display::tile_y = y;
@@ -504,7 +504,7 @@ public class Display {
 		    }
 	}-*/;
 	
-	public native void subTile(int x, int y, int w, int h, byte[] color)/*-{
+	public native void subTile(int x, int y, int w, int h, int[] color)/*-{
 		var data, p, rgb, red, green, blue, width, j, i, xend, yend;
 	    if (@noVNC.core.Defaults::prefer_js) {
 	        data = this.@noVNC.core.Display::tile.data;
@@ -534,7 +534,7 @@ public class Display {
 	    }
 	}-*/;
 	
-	public native void finishTile()/*-{
+	public native void finishTileJS()/*-{
 		if (@noVNC.core.Defaults::prefer_js) {
 				this.@noVNC.core.Display::c_ctx.putImageData(this.@noVNC.core.Display::tile, 
 				this.@noVNC.core.Display::tile_x - this.@noVNC.core.Display::viewport.@noVNC.utils.Rect::x, 
@@ -542,8 +542,13 @@ public class Display {
 		}
 	}-*/;
 	
+	private boolean useJS = false;
 	// Start updating a tile
-	public void startTileXXX(int x, int y, int width, int height, byte[] color) {
+	public void startTile(int x, int y, int width, int height, byte[] color) {
+		if (useJS) {
+			startTile(x, y, width, height, JSUtils.asIntArr(color));
+			return;
+		}
 	    tile_x = x;
 	    tile_y = y;
 	    if ((width == 16) && (height == 16)) {
@@ -574,8 +579,13 @@ public class Display {
 	};
 
 	// Update sub-rectangle of the current tile
-	public void subTileXXX(int x, int y, int w, int h, byte[] color) {
+	public void subTile(int x, int y, int w, int h, byte[] color) {
 //	    var data, p, rgb, red, green, blue, width, j, i, xend, yend;
+		if (useJS) {
+			subTile(x, y, w, h, JSUtils.asIntArr(color));
+			return;
+		}
+
 		byte[] rgb;
 	    if (Defaults.prefer_js) {
 	        CanvasPixelArray data = tile.getData();
@@ -605,7 +615,11 @@ public class Display {
 	};
 
 	// Draw the current tile to the screen
-	public void finishTileXXX() {
+	public void finishTile() {
+		if (useJS) {
+			finishTileJS();
+			return;
+		}
 	    if (Defaults.prefer_js) {
 	        c_ctx.putImageData(tile, tile_x - viewport.x, tile_y - viewport.y);
 	    }

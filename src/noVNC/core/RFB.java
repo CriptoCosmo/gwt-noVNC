@@ -657,49 +657,51 @@ public class RFB {
 	    ws.send(arr);
 	}
 	
-		public void mouseButton (int x, int y, boolean down, int bmask) {
-			Util.Debug(">> mouseClick " + x + "," + y);
-			 if (down) {
-			        mouse_buttonMask |= bmask;
-			    } else {
-			        mouse_buttonMask ^= bmask;
-			    }
-			 if (Defaults.viewportDrag) {
-			        if (down && !viewportDragging) {
-			            viewportDragging = true;
-			            viewportDragPos.x = x;
-			            viewportDragPos.y = y;
-			            // Skip sending mouse events
-			            return;
-			        } else {
-			            viewportDragging = false;
-			        }
-			   }
-		
-			 mouse_arr = JSUtils.concat(mouse_arr, pointerEvent(display.absX(x), display.absY(y)));
-//			 mouse_arr = mouse_arr.concat(pointerEvent(display.absX(x), display.absY(y)));
-			 flushClient();
+	public void mouseButton(int x, int y, boolean down, int bmask) {
+		Util.Debug(">> mouseClick " + x + "," + y);
+		if (down) {
+			mouse_buttonMask |= bmask;
+		} else {
+			mouse_buttonMask ^= bmask;
+		}
+		if (Defaults.viewportDrag) {
+			if (down && !viewportDragging) {
+				viewportDragging = true;
+				viewportDragPos.x = x;
+				viewportDragPos.y = y;
+				// Skip sending mouse events
+				return;
+			} else {
+				viewportDragging = false;
+			}
 		}
 
-		public void	mouseMove (int x, int y) {
-	    Util.Debug(">> mouseMove " + x + "," + y);
-	    int deltaX, deltaY;
-
-	    if (viewportDragging) {
-	        //deltaX = x - viewportDragPos.x; // drag viewport
-	        deltaX = viewportDragPos.x - x; // drag frame buffer
-	        //deltaY = y - viewportDragPos.y; // drag viewport
-	        deltaY = viewportDragPos.y - y; // drag frame buffer
-	        viewportDragPos.x = x;
-            viewportDragPos.y = y;
-	        display.viewportChange(deltaX, deltaY);
-	        // Skip sending mouse events
-	        return;
-	    }
-
-	    mouse_arr = JSUtils.concat(mouse_arr, pointerEvent(display.absX(x), display.absY(y)));
+		mouse_arr = JSUtils.concat(mouse_arr, pointerEvent(display.absX(x), display.absY(y)));
+		// mouse_arr = mouse_arr.concat(pointerEvent(display.absX(x),
+		// display.absY(y)));
+		flushClient();
 	}
 
+	public void mouseMove(int x, int y) {
+		// Util.Debug(">> mouseMove " + x + "," + y);
+		
+		int deltaX, deltaY;
+
+		if (viewportDragging) {
+			// deltaX = x - viewportDragPos.x; // drag viewport
+			deltaX = viewportDragPos.x - x; // drag frame buffer
+			// deltaY = y - viewportDragPos.y; // drag viewport
+			deltaY = viewportDragPos.y - y; // drag frame buffer
+			viewportDragPos.x = x;
+			viewportDragPos.y = y;
+			display.viewportChange(deltaX, deltaY);
+			// Skip sending mouse events
+			return;
+		}
+
+		mouse_arr = JSUtils.concat(mouse_arr,
+				pointerEvent(display.absX(x), display.absY(y)));
+	}
 
 	//
 	// Server message handlers
@@ -1020,6 +1022,7 @@ public class RFB {
 
 	private boolean framebufferUpdate() {
 //	    var now, hdr, fbu_rt_diff, ret = true;
+		long start = System.currentTimeMillis();
 		long now;
 
 	    if (FBU.rects == 0) {
@@ -1062,13 +1065,13 @@ public class RFB {
 //	                     "encoding": FBU.encoding,
 //	                     "encodingName": encNames[FBU.encoding]});
 //
-	            String msg =  "FramebufferUpdate rects:" + FBU.rects;
-	            msg += " x: " + FBU.x + " y: " + FBU.y;
-	            msg += " width: " + FBU.width + " height: " + FBU.height;
-	            msg += " encoding:" + FBU.encoding;
-	            msg += "(" + encNames.get(FBU.encoding) + ")";
-	            msg += ", ws.rQlen(): " + ws.rQlen();
-	            Util.Debug(msg);
+//	            String msg =  "FramebufferUpdate rects:" + FBU.rects;
+//	            msg += " x: " + FBU.x + " y: " + FBU.y;
+//	            msg += " width: " + FBU.width + " height: " + FBU.height;
+//	            msg += " encoding:" + FBU.encoding;
+//	            msg += "(" + encNames.get(FBU.encoding) + ")";
+//	            msg += ", ws.rQlen(): " + ws.rQlen();
+//	            Util.Debug(msg);
 	            if (encNames.containsKey(FBU.encoding)) {
 	                // Debug:
 	                ///*
@@ -1105,12 +1108,12 @@ public class RFB {
 	                    (timing.fbu_rt_start > 0)) {
 	                timing.full_fbu_total += timing.cur_fbu;
 	                timing.full_fbu_cnt += 1;
-	                Util.Info("Timing of full FBU, cur: " +
-	                          timing.cur_fbu + ", total: " +
-	                          timing.full_fbu_total + ", cnt: " +
-	                          timing.full_fbu_cnt + ", avg: " +
-	                          (timing.full_fbu_total /
-	                              timing.full_fbu_cnt));
+//	                Util.Info("Timing of full FBU, cur: " +
+//	                          timing.cur_fbu + ", total: " +
+//	                          timing.full_fbu_total + ", cnt: " +
+//	                          timing.full_fbu_cnt + ", avg: " +
+//	                          (timing.full_fbu_total /
+//	                              timing.full_fbu_cnt));
 	            }
 	            if (timing.fbu_rt_start > 0) {
 	                long fbu_rt_diff = now - timing.fbu_rt_start;
@@ -1136,6 +1139,9 @@ public class RFB {
 //	                "encoding": FBU.encoding,
 //	                "encodingName": encNames[FBU.encoding]});
 //
+//	    long end = System.currentTimeMillis();
+//	    if (end > 0)
+//	    	Util.Debug("Process FBU: " + (end - start));
 	    return true; // We finished this FBU
 	};
 
@@ -1381,7 +1387,8 @@ public class RFB {
 		
 			    //Util.Debug("<< display_hextile");
 			    long end = System.currentTimeMillis();
-			    System.err.println(">>> Time(ms): " + (end - start) + " buffer-remain: " + rfb.ws.rQlen());
+			    if (rfb.ws.rQlen() == 0)
+			    	Util.Debug(">>> Time to decode hex(ms): " + (end - start) + " buffer-remain: " + rfb.ws.rQlen() + ", curTime: " + System.currentTimeMillis());
 			    return true;
 			}
 		});
@@ -1664,8 +1671,7 @@ public class RFB {
 	}
 
 	private byte[] pointerEvent(int x, int y) {
-	    Util.Debug(">> pointerEvent, x,y: " + x + "," + y +
-	               " , mask: " + mouse_buttonMask);
+//	    Util.Debug(">> pointerEvent, x,y: " + x + "," + y + " , mask: " + mouse_buttonMask);
 	    byte[] arr = new byte[] {
 	    		5,  // msg-type
 	    		mouse_buttonMask

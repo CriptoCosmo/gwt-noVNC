@@ -78,18 +78,32 @@ public class Util {
 //	            throw("invalid logging type '" + level + "'");
 //	    }
 //	};
-	public static void Info(String msg) {
-		System.out.println("NFO: " + msg);
-	}
-	public static void Debug(String msg) {
-		System.err.println("DBG: " + msg);
-	}
-	public static void Warn(String msg) {
-		System.err.println("WRN: " + msg);
-	}
-	public static void Error(String msg) {
-		System.err.println("ERR: " + msg);
-	}
+	
+	public static native void Info(String msg)/*-{
+		console.error(msg);
+	}-*/;
+	public static native void Debug(String msg)/*-{
+		console.error(msg);
+	}-*/;
+	public static native void Warn(String msg)/*-{
+		console.error(msg);
+	}-*/;
+	public static native void Error(String msg)/*-{
+		console.error(msg);
+	}-*/;
+	
+//	public static void Info(String msg) {
+//		System.out.println("NFO: " + msg);
+//	}
+//	public static void Debug(String msg) {
+//		System.err.println("DBG: " + msg);
+//	}
+//	public static void Warn(String msg) {
+//		System.err.println("WRN: " + msg);
+//	}
+//	public static void Error(String msg) {
+//		System.err.println("ERR: " + msg);
+//	}
 //	Util.get_logging = function () {
 //	    return Util._log_level;
 //	};

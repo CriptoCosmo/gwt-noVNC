@@ -59,11 +59,11 @@ public class Mouse {
 	    
 		pos = Util.getEventPosition(e, Defaults.target, scale);
 	    
-		if (e.getTouches().length() > 0 || e.getChangedTouches().length() > 0) {
+//		if (e.getTouches().length() > 0 || e.getChangedTouches().length() > 0) {
 	        // Touch device
 //	        bmask = conf.touchButton;
 	        // If bmask is set
-	    } else /*if (evt.which) */{
+//	    } else /*if (evt.which) */{
 	        /* everything except IE */
 //	        bmask = 1 << evt.getButton();
 //	    } else {
@@ -71,12 +71,12 @@ public class Mouse {
 	        bmask = ((evt.getButton() & 0x1) +      // Left
 	                (evt.getButton() & 0x2) * 2 +  // Right
 	                (evt.getButton() & 0x4) / 2);   // Middle
-	    }
+//	    }
 	    //Util.Debug("mouse " + pos.x + "," + pos.y + " down: " + down +
 	    //           " bmask: " + bmask + "(evt.button: " + evt.button + ")");
 	    if (bmask > 0 && mouseHandler != null) {
-	        Util.Debug("onMouseButton " + (down ? "down" : "up") +
-	                   ", x: " + pos.x + ", y: " + pos.y + ", bmask: " + bmask);
+//	        Util.Debug("onMouseButton " + (down ? "down" : "up") + ", x: " + pos.x + ", y: " + pos.y + ", bmask: " + bmask);
+	    	Util.Debug("Handle Mouse Click: " + System.currentTimeMillis());
 	        mouseHandler.onMouseButton(pos.x, pos.y, down, bmask);
 	    }
 	    Util.stopEvent(e);
@@ -126,7 +126,7 @@ public class Mouse {
 	    
 	    pos = Util.getEventPosition(e, Defaults.target, scale);
 	    //Util.Debug('mouse ' + evt.which + '/' + evt.button + ' up:' + pos.x + "," + pos.y);
-	    Util.Debug("Move mouse: " + pos.x + "," + pos.y);
+//	    Util.Debug("Move mouse: " + pos.x + "," + pos.y);
 	    if (mouseHandler != null) {
 	        mouseHandler.onMouseMove(pos.x, pos.y);
 	    }

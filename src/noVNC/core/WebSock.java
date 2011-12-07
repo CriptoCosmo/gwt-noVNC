@@ -235,7 +235,7 @@ public class WebSock {
 	private void decode_message(String data) {
 	    //Util.Debug(">> decode_message: " + data);
 	    /* base64 decode */
-		DataUtils.printCSData(DataUtils.receiving, new String(Base64.decode(data, 0)), data);
+//		DataUtils.printCSData(DataUtils.receiving, new String(Base64.decode(data, 0)), data);
 		if (rQlen()==0) {
 			// we don't need to concat when everything has been read
 			rQ = new byte[] {};	
@@ -258,7 +258,7 @@ public class WebSock {
 	        //Util.Debug("arr: " + arr);
 	        //Util.Debug("sQ: " + sQ);
 	        if (sQ.length > 0) {
-    			DataUtils.printSCData(DataUtils.sending, new String(sQ), encode_message(sQ));
+//    			DataUtils.printSCData(DataUtils.sending, new String(sQ), encode_message(sQ));
 	            websocket.send(encode_message(sQ));
 	        	sQ = new byte[] {};
 	        }
@@ -287,20 +287,21 @@ public class WebSock {
 	private void recv_message(MessageEvent e) {
 	    //Util.Debug(">> recv_message: " + e.data.length);
 
-//	    try {
+	    try {
 	        decode_message(e.getData());
 	        if (rQlen() > 0) {
 	            eventHandlers.onMessage(e);
 //	            // Compact the receive queue
 	            if (rQ.length > rQmax) {
-	                Util.Debug("*** Compacting receive queue");
+//	                Util.Debug("*** Compacting receive queue");
 	                rQ = jsSlice(rQ, rQi);
 	                rQi = 0;
 	            }
 	        } else {
 	            Util.Debug("Ignoring empty message");
 	        }
-//	    } catch (exc) {
+	    } catch (Throwable t) {
+	    	Util.Debug("Exception: " + t.getMessage());
 //	        if (typeof exc.stack !== 'undefined') {
 //	            Util.Warn("recv_message, caught exception: " + exc.stack);
 //	        } else if (typeof exc.description !== 'undefined') {
@@ -313,7 +314,7 @@ public class WebSock {
 //	        } else {
 //	            eventHandlers.error(exc);
 //	        }
-//	    }
+	    }
 	    //Util.Debug("<< recv_message");
 	}
 //

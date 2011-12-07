@@ -119,6 +119,7 @@ public class Base64 {
 	        boolean padding = (data.charAt(i) == base64Pad);
 	        // Skip illegal characters and whitespace
 	        if (c == -1) {
+	        	Util.Debug("Illegal character '" + data.charAt(i) + "'");
 	            System.err.println("Illegal character '" + data.charAt(i) + "'");
 	            continue;
 	        }
