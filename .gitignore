@@ -7,3 +7,5 @@ utils/rebind.so
 /gwt-unitCache
 /x-tomcat
 /.gwt
+target
+*.iml
